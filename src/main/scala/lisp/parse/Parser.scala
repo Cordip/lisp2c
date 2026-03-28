@@ -8,6 +8,7 @@ import scala.annotation.tailrec
 // TODO: make Either like: Either[String, (SExpr, List[String])]
 
 object Parser:
+  
   def apply(tokens: List[String]): SExpr =
     parse(tokens)._1
 
