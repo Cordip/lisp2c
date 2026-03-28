@@ -2,6 +2,7 @@ package lisp.emit
 
 object Runtime:
   val makeInt = "make_int"
+  val makeBool = "make_bool"
   val makeCons = "make_cons"
   val makeNil = "make_nil"
   val lispAdd = "lisp_add"

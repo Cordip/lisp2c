@@ -9,6 +9,13 @@ LispVal* make_int(int val) {
     return lispVal;
 }
 
+LispVal* make_bool(int val) {
+    LispVal* lispVal = malloc(sizeof(LispVal));
+    lispVal->tag = BOOL;
+    lispVal->boolean = val;
+    return lispVal;
+}
+
 LispVal* make_cons(LispVal* car, LispVal* cdr) {
     LispVal* lispVal = malloc(sizeof(LispVal));
     lispVal->tag = CONS;
@@ -43,6 +50,12 @@ LispVal* lisp_mul(LispVal* left, LispVal* right) {
     return make_int(get_int_value(left) * get_int_value(right));
 }
 
+int is_truthy(LispVal* val) {
+    if (val->tag == NIL) return 0;
+    if (val->tag == BOOL && val->boolean == 0) return 0;
+    return 1;
+}
+
 static void print_tail(LispVal* cdr);
 
 void print_val(LispVal* val) {
@@ -54,6 +67,10 @@ void print_val(LispVal* val) {
 
     case INT:
         printf("%d", val->number);
+        break;
+
+    case BOOL:
+        printf(val->boolean ? "#t" : "#f");
         break;
 
     case CONS:

@@ -3,6 +3,7 @@ package lisp.orchestration
 import lisp.emit.{CodeGen, Flatten}
 import lisp.parse.{Parser, Tokenizer}
 import lisp.transform.{Lowering, Transform}
+import lisp.types.Statement.{If, Value}
 
 import java.io.{File, PrintWriter}
 import scala.io.Source
@@ -14,8 +15,13 @@ object Compiler:
     val sExpr = Parser(tokens)
     val lispExpr = Transform(sExpr)
     val cExpr = Lowering(lispExpr)
-    val statements = Flatten(cExpr)
-    CodeGen(statements)
+    val stmts = Flatten(cExpr)
+    val lastVar = stmts.last match
+      case Value(name, _) => name
+      case If(_, _, _, resultVar) => resultVar
+      case other => throw new Exception(s"Unexpected last statement type: $other")
+    val body = CodeGen(stmts)
+    s"$body\nreturn $lastVar;"
 
   private def writeFile(dir: File, name: String, content: String): Unit =
     Using(PrintWriter(File(dir, name)))(_.write(content))

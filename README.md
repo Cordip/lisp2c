@@ -15,7 +15,7 @@ LispCons(LispNumber(42), LispNil)       — AST
   ↓ Lowering
 CCall("make_cons", ...)                 — C expression tree
   ↓ Flatten
-[Value("v0", ...), Return(CVar("v0"))]  — flat statements
+[Value("v0", ...)]                       — flat statements
   ↓ CodeGen
 "LispVal* v0 = make_int(42);\n..."      — C code
   ↓ GCC
