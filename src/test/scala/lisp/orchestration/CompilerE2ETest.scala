@@ -1,8 +1,8 @@
 package lisp.orchestration
 
 import java.nio.charset.StandardCharsets
-import java.nio.file.{Files, Path}
-import scala.jdk.CollectionConverters.*
+import java.nio.file.attribute.BasicFileAttributes
+import java.nio.file.{FileVisitResult, Files, Path, SimpleFileVisitor}
 import scala.sys.process.*
 
 class CompilerE2ETest extends munit.FunSuite:
@@ -27,12 +27,21 @@ class CompilerE2ETest extends munit.FunSuite:
       Files.writeString(runtimeC, Compiler.readResource("runtime.c"), StandardCharsets.UTF_8)
       Files.writeString(outputC, output, StandardCharsets.UTF_8)
 
-      val compileExit = Process(Seq("gcc", s"-I${dir.toString}", outputC.toString, runtimeC.toString, "-o", program.toString)).!
+      val dirPath = dir.toAbsolutePath.toString
+      val compileExit = Process(Seq("gcc", s"-I$dirPath", outputC.toAbsolutePath.toString, runtimeC.toAbsolutePath.toString, "-o", program.toAbsolutePath.toString)).!
       assertEquals(compileExit, 0)
-      Process(Seq(program.toString)).!!.trim
+      Process(Seq(program.toAbsolutePath.toString)).!!.trim
     finally
       deleteRecursively(dir)
 
   private def deleteRecursively(path: Path): Unit =
     if Files.exists(path) then
-      Files.walk(path).iterator().asScala.toList.reverse.foreach(Files.deleteIfExists)
+      Files.walkFileTree(path, new SimpleFileVisitor[Path]:
+        override def visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult =
+          Files.deleteIfExists(file)
+          FileVisitResult.CONTINUE
+
+        override def postVisitDirectory(dir: Path, exc: java.io.IOException | Null): FileVisitResult =
+          Files.deleteIfExists(dir)
+          FileVisitResult.CONTINUE
+      )
