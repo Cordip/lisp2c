@@ -10,7 +10,9 @@ object Transform:
     input match
       case SNil => LispNil
       case SNumber(x) => LispNumber(x)
+      case SSymbol("nil") => LispNil
       case SSymbol(value) => LispSymbol(value)
       case SList(Nil) => LispNil
-      case SList(head :: args) => LispApply(apply(head), args.map(apply))
+      case SList(head @ SSymbol(_) :: args) => LispApply(apply(head), args.map(apply))
+      case SList(head :: args) => LispCons(apply(head), apply(SList(args)))
       case _ => throw new Exception("TODO: add more logic")
