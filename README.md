@@ -45,7 +45,7 @@ src/main/scala/
       SExpr.scala               — S-expression types
       LispExpr.scala            — Lisp AST types
       CExpr.scala               — C expression types
-      CStatement.scala          — flat C statement types
+      Statement.scala           — flat C statement types
     parse/
       Tokenizer.scala           — string → tokens
       Parser.scala              — tokens → SExpr
@@ -53,8 +53,8 @@ src/main/scala/
       Transform.scala           — SExpr → LispExpr
       Lowering.scala            — LispExpr → CExpr
     emit/
-      Flatten.scala             — CExpr tree → flat CStatements
-      CodeGen.scala             — CStatements → C code string
+      Flatten.scala             — CExpr tree → flat Statements
+      CodeGen.scala             — Statements → C code string
       Runtime.scala             — runtime function names
     orchestration/
       Compiler.scala            — pipeline and file output

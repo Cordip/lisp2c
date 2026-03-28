@@ -2,6 +2,6 @@ package lisp.types
 
 import lisp.types.CExpr.*
 
-enum CStatement:
+enum Statement:
   case Return(expr: CExpr)
   case Value(name: String, call: CCall)

@@ -1,16 +1,16 @@
 package lisp.emit
 
-import lisp.types.{CExpr, CStatement}
+import lisp.types.{CExpr, Statement}
 import lisp.types.CExpr.*
-import lisp.types.CStatement.*
+import lisp.types.Statement.*
 
 import scala.collection.mutable
 
 object Flatten:
 
-  def apply(input: CExpr): List[CStatement] =
+  def apply(input: CExpr): List[Statement] =
 
-    val result = mutable.ListBuffer[CStatement]()
+    val result = mutable.ListBuffer[Statement]()
     var counter = 0
 
     def flatten(input: CExpr): CExpr =
