@@ -1,15 +1,15 @@
 package lisp.emit
 
-import lisp.types.{CExpr, CStatement}
+import lisp.types.{CExpr, Statement}
 import lisp.types.CExpr.{CCall, CNumber, CVar}
-import lisp.types.CStatement.*
+import lisp.types.Statement.*
 
 object CodeGen:
 
-  def apply(input: List[CStatement]): String =
+  def apply(input: List[Statement]): String =
     input.map(emitStatement).mkString("\n")
 
-  private def emitStatement(stmt: CStatement): String =
+  private def emitStatement(stmt: Statement): String =
     stmt match
       case Value(name, call) => s"LispVal* $name = ${emitCall(call)};"
       case Return(expr)      => s"return ${emitExpr(expr)};"
