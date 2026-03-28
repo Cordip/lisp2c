@@ -1,7 +1,7 @@
 package lisp.emit
 
 import lisp.types.CExpr.*
-import lisp.types.CStatement.*
+import lisp.types.Statement.*
 
 class CodeGenTest extends munit.FunSuite:
 
