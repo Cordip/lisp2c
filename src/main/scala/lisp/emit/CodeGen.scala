@@ -1,6 +1,6 @@
 package lisp.emit
 
-import lisp.types.CExpr.{CCall, CNumber, CVar}
+import lisp.types.CExpr.*
 import lisp.types.Statement.*
 import lisp.types.{CExpr, Statement}
 
@@ -17,12 +17,7 @@ object CodeGen:
       case If(cond, thenBranch, elseBranch, resultVar) =>
         val thenLines = thenBranch.flatMap(apply).map("    " + _)
         val elseLines = elseBranch.flatMap(apply).map("    " + _)
-        List(s"LispVal* $resultVar;") ++
-          List(s"if (is_truthy($cond)) {") ++
-          thenLines ++
-          List("} else {") ++
-          elseLines ++
-          List("}")
+        List(s"LispVal* $resultVar;") ++ List(s"if (is_truthy($cond)) {") ++ thenLines ++ List("} else {") ++ elseLines ++ List("}")
 
   private def emitCall(call: CCall): String =
     call.name + "(" + call.args.map(emitExpr).mkString(", ") + ")"
@@ -32,3 +27,4 @@ object CodeGen:
       case CNumber(value) => value.toString
       case CVar(name) => name
       case CCall(name, args) => name + "(" + args.map(emitExpr).mkString(", ") + ")"
+      case CIf(_, _, _) => throw new Exception("CIf must be flattened before codegen")

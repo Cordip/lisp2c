@@ -18,35 +18,29 @@ object Flatten:
         case n: CNumber => n
         case v: CVar => v
         case CIf(cond, thenBranch, elseBranch) =>
-          val condExpr = flatten(cond)
-          val condVar = condExpr match
+          val condVar = flatten(cond) match
             case CVar(name) => name
             case _ => throw new Exception("Flatten: cond must resolve to a var")
 
           val startSize = result.size
-          val thenExpr = flatten(thenBranch)
-          val thenStatements = result.drop(startSize).toList
-          result.trimEnd(result.size - startSize)
-          val thenVar = thenExpr match
+          val thenVar = flatten(thenBranch) match
             case CVar(name) => name
             case _ => throw new Exception("Flatten: then must resolve to a var")
 
+          val thenStatements = result.drop(startSize).toList
+          result.dropRightInPlace(result.size - startSize)
+
           val elseStartSize = result.size
-          val elseExpr = flatten(elseBranch)
-          val elseStatements = result.drop(elseStartSize).toList
-          result.trimEnd(result.size - elseStartSize)
-          val elseVar = elseExpr match
+          val elseVar = flatten(elseBranch) match
             case CVar(name) => name
             case _ => throw new Exception("Flatten: else must resolve to a var")
 
+          val elseStatements = result.drop(elseStartSize).toList
+          result.dropRightInPlace(result.size - elseStartSize)
+
           val resultVar = s"v$counter"
           counter += 1
-          result += If(
-            condVar,
-            thenStatements :+ Assign(resultVar, thenVar),
-            elseStatements :+ Assign(resultVar, elseVar),
-            resultVar
-          )
+          result += If(condVar, thenStatements :+ Assign(resultVar, thenVar), elseStatements :+ Assign(resultVar, elseVar), resultVar)
           CVar(resultVar)
         case CCall(name, args) =>
           val newArgs = args.map(flatten)
@@ -57,7 +51,6 @@ object Flatten:
 
     input match
       case _: CCall | _: CIf =>
-        val lastVar = flatten(input)
-        result += Return(lastVar)
+        result += Return(flatten(input))
         result.toList
       case _ => throw new Exception("Expected CCall at top level")
