@@ -11,7 +11,7 @@ object CodeGen:
 
   private def emitStatement(stmt: Statement): String =
     stmt match
-      case Value(name, call) => s"LispVal* $name = ${emitCall(call)};"
+      case Value(name, call) => s"LispVal $name = ${emitCall(call)};"
       case Return(expr)      => s"return ${emitExpr(expr)};"
 
   private def emitCall(call: CCall): String =
