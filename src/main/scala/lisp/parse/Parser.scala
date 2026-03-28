@@ -1,7 +1,7 @@
 package lisp.parse
 
 import lisp.types.SExpr
-import lisp.types.SExpr.{SList, SNumber, SSymbol}
+import lisp.types.SExpr.{SBool, SList, SNumber, SSymbol}
 
 import scala.annotation.tailrec
 
@@ -18,9 +18,13 @@ object Parser:
       case ")" :: rest => throw new Exception("Unexpected )")
       case "(" :: rest => parseList(Nil, rest)
       case x :: rest =>
-        x.toIntOption match
-          case Some(n) => (SNumber(n), rest)
-          case None => (SSymbol(x), rest)
+        x match
+          case "#t" => (SBool(true), rest)
+          case "#f" => (SBool(false), rest)
+          case _ =>
+            x.toIntOption match
+              case Some(n) => (SNumber(n), rest)
+              case None => (SSymbol(x), rest)
 
   @tailrec
   private def parseList(acc: List[SExpr], tokens: List[String]): (SExpr, List[String]) =

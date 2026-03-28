@@ -59,3 +59,31 @@ class LoweringTest extends munit.FunSuite:
       Lowering(LispApply(LispSymbol("-"), List(LispNumber(7), LispNumber(4)))),
       CCall("lisp_sub", List(CCall("make_int", List(CNumber(7))), CCall("make_int", List(CNumber(4)))))
     )
+
+  test("bool true"):
+    assertEquals(
+      Lowering(LispBool(true)),
+      CCall("make_bool", List(CNumber(1)))
+    )
+
+  test("bool false"):
+    assertEquals(
+      Lowering(LispBool(false)),
+      CCall("make_bool", List(CNumber(0)))
+    )
+
+  test("if"):
+    assertEquals(
+      Lowering(LispIf(LispBool(true), LispNumber(1), LispNumber(2))),
+      CIf(
+        CCall("make_bool", List(CNumber(1))),
+        CCall("make_int", List(CNumber(1))),
+        CCall("make_int", List(CNumber(2)))
+      )
+    )
+
+  test("quote bool"):
+    assertEquals(
+      Lowering(LispQuote(LispBool(true))),
+      CCall("make_bool", List(CNumber(1)))
+    )
