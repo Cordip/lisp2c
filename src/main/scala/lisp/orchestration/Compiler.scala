@@ -19,7 +19,7 @@ object Compiler:
     val lastVar = stmts.last match
       case Value(name, _) => name
       case If(_, _, _, resultVar) => resultVar
-      case _ => throw new Exception("Unexpected last statement")
+      case other => throw new Exception(s"Unexpected last statement type: $other")
     val body = CodeGen(stmts)
     s"$body\nreturn $lastVar;"
 

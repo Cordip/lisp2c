@@ -19,7 +19,7 @@ object Flatten:
               (argStmts.reverse ::: stmtsAcc, argExpr :: exprsAcc, cntNext)
             }
           val argStmts = argStmtsRev.reverse
-          val argExprs = argExprsRev
+          val argExprs = argExprsRev.reverse
           val varName = s"v$nextCounter"
           (argStmts :+ Value(varName, CCall(name, argExprs)), CVar(varName), nextCounter + 1)
         case CIf(cond, thenBranch, elseBranch) =>
