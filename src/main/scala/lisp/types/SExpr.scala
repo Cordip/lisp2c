@@ -5,4 +5,5 @@ package lisp.types
 enum SExpr:
   case SList(value: List[SExpr])
   case SNumber(value: Int)
+  case SSymbol(value: String)
   case SNil
