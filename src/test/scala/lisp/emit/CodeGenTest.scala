@@ -40,7 +40,7 @@ class CodeGenTest extends munit.FunSuite:
       List("v3 = v1;")
     )
 
-  test("sif"):
+  test("if statement"):
     val input = If("v0",
       List(Value("v1", CCall("make_int", List(CNumber(1)))), Assign("v3", "v1")),
       List(Value("v2", CCall("make_int", List(CNumber(2)))), Assign("v3", "v2")),
