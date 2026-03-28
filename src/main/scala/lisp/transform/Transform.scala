@@ -12,8 +12,5 @@ object Transform:
       case SNumber(x) => LispNumber(x)
       case SSymbol(value) => LispSymbol(value)
       case SList(Nil) => LispNil
-      case SList(SSymbol("+") :: args) => LispApply(LispSymbol("+"), args.map(apply))
-      case SList(SSymbol("-") :: args) => LispApply(LispSymbol("-"), args.map(apply))
-      case SList(SSymbol("*") :: args) => LispApply(LispSymbol("*"), args.map(apply))
-      case SList(expr :: rest) => LispCons(apply(expr), apply(SList(rest)))
+      case SList(head :: args) => LispApply(apply(head), args.map(apply))
       case _ => throw new Exception("TODO: add more logic")
