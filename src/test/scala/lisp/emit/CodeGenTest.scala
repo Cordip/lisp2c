@@ -7,7 +7,7 @@ class CodeGenTest extends munit.FunSuite:
 
   test("single value"):
     val input = List(Value("v0", CCall("make_int", List(CNumber(42)))))
-    assertEquals(CodeGen(input), "LispVal* v0 = make_int(42);")
+    assertEquals(CodeGen(input), "LispVal v0 = make_int(42);")
 
   test("multiple values"):
     val input = List(
@@ -17,12 +17,12 @@ class CodeGenTest extends munit.FunSuite:
     )
     assertEquals(
       CodeGen(input),
-      "LispVal* v0 = make_int(42);\nLispVal* v1 = make_nil();\nLispVal* v2 = make_cons(v0, v1);"
+      "LispVal v0 = make_int(42);\nLispVal v1 = make_nil();\nLispVal v2 = make_cons(v0, v1);"
     )
 
   test("empty args"):
     val input = List(Value("v0", CCall("make_nil", List())))
-    assertEquals(CodeGen(input), "LispVal* v0 = make_nil();")
+    assertEquals(CodeGen(input), "LispVal v0 = make_nil();")
 
   test("return"):
     val input = List(
@@ -31,5 +31,5 @@ class CodeGenTest extends munit.FunSuite:
     )
     assertEquals(
       CodeGen(input),
-      "LispVal* v0 = make_int(42);\nreturn v0;"
+      "LispVal v0 = make_int(42);\nreturn v0;"
     )

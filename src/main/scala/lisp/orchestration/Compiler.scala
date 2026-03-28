@@ -26,8 +26,10 @@ object Compiler:
   def initializeOutput(output: String): Unit =
     val outDir = File("output")
     if (!outDir.exists()) outDir.mkdirs()
+    val tagsH = readResource("tags.h")
     val runtimeH = readResource("runtime.h")
     val runtimeC = readResource("runtime.c")
+    writeFile(outDir, "tags.h", tagsH)
     writeFile(outDir, "runtime.h", runtimeH)
     writeFile(outDir, "runtime.c", runtimeC)
     writeFile(outDir, "output.c", output)

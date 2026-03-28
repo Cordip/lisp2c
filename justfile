@@ -46,6 +46,11 @@ run-all:
 test:
     {{sbt-verbose}} test
 
+# Run C runtime tests (Unity)
+[group('test')]
+test-runtime:
+    gcc -Isrc/main/resources -Itest test/test_runtime.c test/unity.c src/main/resources/runtime.c -o test/test_runtime && ./test/test_runtime
+
 # Remove build artifacts
 [group('build')]
 clean:
