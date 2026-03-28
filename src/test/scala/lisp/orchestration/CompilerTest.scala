@@ -7,4 +7,3 @@ class CompilerTest extends munit.FunSuite:
     assert(cCode.contains("make_int(42)"))
     assert(cCode.contains("make_cons"))
     assert(cCode.contains("make_nil"))
-
