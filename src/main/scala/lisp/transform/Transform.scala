@@ -1,8 +1,8 @@
 package lisp.transform
 
-import lisp.types.LispExpr.{LispApply, LispCons, LispNil, LispNumber, LispSymbol}
-import lisp.types.{LispExpr, SExpr}
+import lisp.types.LispExpr.*
 import lisp.types.SExpr.{SList, SNil, SNumber, SSymbol}
+import lisp.types.{LispExpr, SExpr}
 
 object Transform:
 
