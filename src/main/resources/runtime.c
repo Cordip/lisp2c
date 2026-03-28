@@ -23,6 +23,26 @@ LispVal* make_nil() {
     return lispVal;
 }
 
+static int expect_int(LispVal* val) {
+    if (val->tag != INT) {
+        fprintf(stderr, "Expected INT value in arithmetic\n");
+        exit(1);
+    }
+    return val->number;
+}
+
+LispVal* lisp_add(LispVal* left, LispVal* right) {
+    return make_int(expect_int(left) + expect_int(right));
+}
+
+LispVal* lisp_sub(LispVal* left, LispVal* right) {
+    return make_int(expect_int(left) - expect_int(right));
+}
+
+LispVal* lisp_mul(LispVal* left, LispVal* right) {
+    return make_int(expect_int(left) * expect_int(right));
+}
+
 static void print_tail(LispVal* cdr);
 
 void print_val(LispVal* val) {

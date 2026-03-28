@@ -24,3 +24,10 @@ class TransformTest extends munit.FunSuite:
       Transform(sexpr),
       LispCons(LispNumber(1), LispCons(LispNumber(2), LispCons(LispNumber(3), LispNil)))
     )
+
+  test("addition apply"):
+    val sexpr = SList(List(SSymbol("+"), SNumber(1), SNumber(2)))
+    assertEquals(
+      Transform(sexpr),
+      LispApply(LispSymbol("+"), List(LispNumber(1), LispNumber(2)))
+    )
