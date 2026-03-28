@@ -23,6 +23,17 @@ class ParserTest extends munit.FunSuite:
     val tokens = Tokenizer("(+ 1 2)")
     assertEquals(Parser(tokens), SList(List(SSymbol("+"), SNumber(1), SNumber(2))))
 
+  test("bool true"):
+    val tokens = Tokenizer("(#t)")
+    assertEquals(Parser(tokens), SList(List(SBool(true))))
+
+  test("bool false"):
+    val tokens = Tokenizer("(if #f 1 2)")
+    assertEquals(
+      Parser(tokens),
+      SList(List(SSymbol("if"), SBool(false), SNumber(1), SNumber(2)))
+    )
+
   test("empty input throws"):
     intercept[Exception] {
       Parser(List())

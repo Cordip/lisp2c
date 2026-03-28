@@ -23,6 +23,19 @@ LispVal* make_nil() {
     return lispVal;
 }
 
+LispVal* make_bool(int val) {
+    LispVal* lispVal = malloc(sizeof(LispVal));
+    lispVal->tag = BOOL;
+    lispVal->boolean = val;
+    return lispVal;
+}
+
+int is_truthy(LispVal* val) {
+    if (val->tag == NIL) return 0;
+    if (val->tag == BOOL && val->boolean == 0) return 0;
+    return 1;
+}
+
 static int get_int_value(LispVal* val) {
     if (val->tag != INT) {
         fprintf(stderr, "Expected INT value in arithmetic\n");
@@ -54,6 +67,10 @@ void print_val(LispVal* val) {
 
     case INT:
         printf("%d", val->number);
+        break;
+
+    case BOOL:
+        printf(val->boolean ? "#t" : "#f");
         break;
 
     case CONS:

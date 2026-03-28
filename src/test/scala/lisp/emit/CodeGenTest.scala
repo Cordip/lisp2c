@@ -33,3 +33,29 @@ class CodeGenTest extends munit.FunSuite:
       CodeGen(input),
       "LispVal* v0 = make_int(42);\nreturn v0;"
     )
+
+  test("assign"):
+    assertEquals(
+      CodeGen(Assign("v3", "v1")),
+      List("v3 = v1;")
+    )
+
+  test("sif"):
+    val input = If("v0",
+      List(Value("v1", CCall("make_int", List(CNumber(1)))), Assign("v3", "v1")),
+      List(Value("v2", CCall("make_int", List(CNumber(2)))), Assign("v3", "v2")),
+      "v3"
+    )
+    assertEquals(
+      CodeGen(input),
+      List(
+        "LispVal* v3;",
+        "if (is_truthy(v0)) {",
+        "    LispVal* v1 = make_int(1);",
+        "    v3 = v1;",
+        "} else {",
+        "    LispVal* v2 = make_int(2);",
+        "    v3 = v2;",
+        "}"
+      )
+    )

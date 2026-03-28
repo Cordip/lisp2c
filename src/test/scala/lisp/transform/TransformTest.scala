@@ -18,6 +18,9 @@ class TransformTest extends munit.FunSuite:
   test("empty list"):
     assertEquals(Transform(SList(Nil)), LispNil)
 
+  test("bool"):
+    assertEquals(Transform(SBool(true)), LispBool(true))
+
   test("multiple numbers"):
     val sexpr = SList(List(SNumber(1), SNumber(2), SNumber(3)))
     assertEquals(
@@ -37,4 +40,26 @@ class TransformTest extends munit.FunSuite:
     assertEquals(
       Transform(sexpr),
       LispApply(LispSymbol("foo"), List(LispNumber(1), LispNumber(2)))
+    )
+
+  test("if"):
+    val input = SList(List(SSymbol("if"), SBool(true), SNumber(1), SNumber(2)))
+    assertEquals(
+      Transform(input),
+      LispIf(LispBool(true), LispNumber(1), LispNumber(2))
+    )
+
+  test("nested if"):
+    val input = SList(List(
+      SSymbol("if"), SBool(true),
+      SList(List(SSymbol("if"), SBool(false), SNumber(1), SNumber(2))),
+      SNumber(3)
+    ))
+    assertEquals(
+      Transform(input),
+      LispIf(
+        LispBool(true),
+        LispIf(LispBool(false), LispNumber(1), LispNumber(2)),
+        LispNumber(3)
+      )
     )
