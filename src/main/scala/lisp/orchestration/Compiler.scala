@@ -1,6 +1,6 @@
 package lisp.orchestration
 
-import lisp.emit.CodeGen
+import lisp.emit.{CodeGen, Flatten}
 import lisp.parse.{Parser, Tokenizer}
 import lisp.transform.{Lowering, Transform}
 
@@ -14,7 +14,8 @@ object Compiler:
     val sExpr = Parser(tokens)
     val lispExpr = Transform(sExpr)
     val cExpr = Lowering(lispExpr)
-    CodeGen(cExpr)
+    val statements = Flatten(cExpr)
+    CodeGen(statements)
 
   private def writeFile(dir: File, name: String, content: String): Unit =
     Using(PrintWriter(File(dir, name)))(_.write(content))
