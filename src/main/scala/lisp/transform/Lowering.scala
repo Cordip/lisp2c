@@ -1,7 +1,7 @@
 package lisp.transform
 
 import lisp.emit.Runtime.*
-import lisp.types.CExpr.{CCall, CNumber}
+import lisp.types.CExpr.{CCall, CIf, CNumber}
 import lisp.types.LispExpr.*
 import lisp.types.{CExpr, LispExpr}
 
@@ -12,7 +12,9 @@ object Lowering:
       case LispNil => CCall(makeNil, List())
       case LispCons(car, cdr) => CCall(makeCons, List(apply(car), apply(cdr)))
       case LispNumber(value) => CCall(makeInt, List(CNumber(value)))
+      case LispBool(value) => CCall(makeBool, List(CNumber(if value then 1 else 0)))
       case LispSymbol(value) => throw new Exception(s"Unexpected symbol in lowering: $value")
+      case LispIf(cond, thenBranch, elseBranch) => CIf(apply(cond), apply(thenBranch), apply(elseBranch))
       case LispApply(LispNumber(value), Nil) => CCall(makeInt, List(CNumber(value)))
       case LispApply(LispSymbol(symbol), args) => lowerFunc(symbol, args)
       case LispApply(function, args) => throw new Exception(s"Unsupported function $function with ${args.length} args")
