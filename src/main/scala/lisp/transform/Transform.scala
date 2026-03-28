@@ -1,8 +1,8 @@
 package lisp.transform
 
-import lisp.types.LispExpr.{LispCons, LispNil, LispNumber}
+import lisp.types.LispExpr.*
+import lisp.types.SExpr.{SList, SNil, SNumber, SSymbol}
 import lisp.types.{LispExpr, SExpr}
-import lisp.types.SExpr.{SList, SNil, SNumber}
 
 object Transform:
 
@@ -10,6 +10,8 @@ object Transform:
     input match
       case SNil => LispNil
       case SNumber(x) => LispNumber(x)
+      case SSymbol("nil") => LispNil
+      case SSymbol(value) => LispSymbol(value)
       case SList(Nil) => LispNil
-      case SList(expr :: rest) => LispCons(apply(expr), apply(SList(rest)))
+      case SList(head :: args) => LispApply(apply(head), args.map(apply))
       case _ => throw new Exception("TODO: add more logic")

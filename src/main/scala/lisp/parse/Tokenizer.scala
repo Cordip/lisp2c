@@ -10,7 +10,7 @@ object Tokenizer:
     val prefix = if current.isEmpty then List() else List(current)
     input.toList match
       case Nil => prefix
-      case '(' :: rest => prefix ++ List("(") ++ apply(rest.mkString, "")
-      case ')' :: rest => prefix ++ List(")") ++ apply(rest.mkString, "")
-      case ' ' :: rest => prefix ++ apply(rest.mkString, "")
+      case '(' :: rest => prefix ++ List("(") ++ apply(rest.mkString)
+      case ')' :: rest => prefix ++ List(")") ++ apply(rest.mkString)
+      case ' ' :: rest => prefix ++ apply(rest.mkString)
       case c :: rest => apply(rest.mkString, current + c)

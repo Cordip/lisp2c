@@ -1,13 +1,14 @@
 package lisp.parse
 
 import lisp.types.SExpr
-import lisp.types.SExpr.{SList, SNumber}
+import lisp.types.SExpr.{SList, SNumber, SSymbol}
 
 import scala.annotation.tailrec
 
 // TODO: make Either like: Either[String, (SExpr, List[String])]
 
 object Parser:
+  
   def apply(tokens: List[String]): SExpr =
     parse(tokens)._1
 
@@ -17,8 +18,9 @@ object Parser:
       case ")" :: rest => throw new Exception("Unexpected )")
       case "(" :: rest => parseList(Nil, rest)
       case x :: rest =>
-        val n = x.toIntOption.getOrElse(throw new Exception(s"Not a number: $x"))
-        (SNumber(n), rest)
+        x.toIntOption match
+          case Some(n) => (SNumber(n), rest)
+          case None => (SSymbol(x), rest)
 
   @tailrec
   private def parseList(acc: List[SExpr], tokens: List[String]): (SExpr, List[String]) =
