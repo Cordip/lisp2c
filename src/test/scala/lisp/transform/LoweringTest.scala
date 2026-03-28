@@ -59,3 +59,15 @@ class LoweringTest extends munit.FunSuite:
       Lowering(LispApply(LispSymbol("-"), List(LispNumber(7), LispNumber(4)))),
       CCall("lisp_sub", List(CCall("make_int", List(CNumber(7))), CCall("make_int", List(CNumber(4)))))
     )
+
+  test("cons application (cons 1 2)"):
+    assertEquals(
+      Lowering(LispApply(LispSymbol("cons"), List(LispNumber(1), LispNumber(2)))),
+      CCall("make_cons", List(CCall("make_int", List(CNumber(1))), CCall("make_int", List(CNumber(2)))))
+    )
+
+  test("wrong arity for mapped function"):
+    val exception = intercept[Exception] {
+      Lowering(LispApply(LispSymbol("+"), List(LispNumber(1))))
+    }
+    assertEquals(exception.getMessage, "Wrong arity for +")
