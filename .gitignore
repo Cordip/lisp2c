@@ -35,3 +35,4 @@ metals.sbt
 output/
 
 .scala-build
+test/test_runtime
