@@ -38,3 +38,30 @@ class LoweringTest extends munit.FunSuite:
         ))
       ))
     )
+
+  test("addition (+ 1 2)"):
+    assertEquals(
+      Lowering(LispApply(LispSymbol("+"), List(LispNumber(1), LispNumber(2)))),
+      CCall("lisp_add", List(CCall("make_int", List(CNumber(1))), CCall("make_int", List(CNumber(2)))))
+    )
+
+  test("nested arithmetic (* 3 (+ 1 2))"):
+    assertEquals(
+      Lowering(LispApply(LispSymbol("*"), List(LispNumber(3), LispApply(LispSymbol("+"), List(LispNumber(1), LispNumber(2)))))),
+      CCall("lisp_mul", List(
+        CCall("make_int", List(CNumber(3))),
+        CCall("lisp_add", List(CCall("make_int", List(CNumber(1))), CCall("make_int", List(CNumber(2)))))
+      ))
+    )
+
+  test("subtraction (- 7 4)"):
+    assertEquals(
+      Lowering(LispApply(LispSymbol("-"), List(LispNumber(7), LispNumber(4)))),
+      CCall("lisp_sub", List(CCall("make_int", List(CNumber(7))), CCall("make_int", List(CNumber(4)))))
+    )
+
+  test("addition with wrong arity throws"):
+    val ex = intercept[Exception] {
+      Lowering(LispApply(LispSymbol("+"), List(LispNumber(1), LispNumber(2), LispNumber(3))))
+    }
+    assertEquals(ex.getMessage, "Arithmetic + expects 2 arguments, got 3")
