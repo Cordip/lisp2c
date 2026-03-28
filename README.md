@@ -13,9 +13,11 @@ SList(SNumber(42))                      — S-expression
   ↓ Transform
 LispCons(LispNumber(42), LispNil)       — AST
   ↓ Lowering
-CCall("make_cons", ...)                 — C expression
+CCall("make_cons", ...)                 — C expression tree
+  ↓ Flatten
+[Value("v0", ...), Return(CVar("v0"))]  — flat statements
   ↓ CodeGen
-"make_cons(make_int(42), make_nil())"   — C code
+"LispVal* v0 = make_int(42);\n..."      — C code
   ↓ GCC
 ./output/program                        — binary
 ```
@@ -43,6 +45,7 @@ src/main/scala/
       SExpr.scala               — S-expression types
       LispExpr.scala            — Lisp AST types
       CExpr.scala               — C expression types
+      CStatement.scala          — flat C statement types
     parse/
       Tokenizer.scala           — string → tokens
       Parser.scala              — tokens → SExpr
@@ -50,7 +53,8 @@ src/main/scala/
       Transform.scala           — SExpr → LispExpr
       Lowering.scala            — LispExpr → CExpr
     emit/
-      CodeGen.scala             — CExpr → C code string
+      Flatten.scala             — CExpr tree → flat CStatements
+      CodeGen.scala             — CStatements → C code string
       Runtime.scala             — runtime function names
     orchestration/
       Compiler.scala            — pipeline and file output

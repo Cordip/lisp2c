@@ -21,6 +21,7 @@ import scala.util.Using
 
   val cCode = Compiler.pipeline(lispCode)
   val template = Compiler.readResource("template.c")
-  val output = template.replace("{{EXPR}}", cCode)
+  val indented = "    " + cCode.replaceAll("\n", "\n    ")
+  val output = template.replace("{{BODY}}", indented)
 
   Compiler.initializeOutput(output)
