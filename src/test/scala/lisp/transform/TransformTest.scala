@@ -43,10 +43,14 @@ class TransformTest extends munit.FunSuite:
     )
 
   test("if missing else throws"):
-    intercept[Exception] { Transform(SList(List(SSymbol("if"), SBool(true), SNumber(1)))) }
+    intercept[Exception] {
+      Transform(SList(List(SSymbol("if"), SBool(true), SNumber(1))))
+    }
 
   test("if extra args throws"):
-    intercept[Exception] { Transform(SList(List(SSymbol("if"), SBool(true), SNumber(1), SNumber(2), SNumber(3)))) }
+    intercept[Exception] {
+      Transform(SList(List(SSymbol("if"), SBool(true), SNumber(1), SNumber(2), SNumber(3))))
+    }
 
   test("if"):
     val input = SList(List(SSymbol("if"), SBool(true), SNumber(1), SNumber(2)))
