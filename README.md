@@ -5,19 +5,21 @@ Lisp-to-C compiler on Scala 3.
 ## Pipeline
 
 ```
-(42)                                    — Lisp source
+(+ 1 2)                                 — Lisp source
   ↓ Tokenizer
-["(", "42", ")"]                        — tokens
+["(", "+", "1", "2", ")"]               — tokens
   ↓ Parser
-SList(SNumber(42))                      — S-expression
+SList(SSymbol("+"), SNumber(1), ...)     — S-expression
   ↓ Transform
-LispCons(LispNumber(42), LispNil)       — AST
+LispApply(LispSymbol("+"), ...)          — AST
   ↓ Lowering
-CCall("make_cons", ...)                 — C expression tree
+CCall("lisp_add", ...)                  — C expression tree
   ↓ Flatten
-[Value("v0", ...), Return(CVar("v0"))]  — flat statements
+[Value("v0", ...), Return(CVar("v2"))]  — flat statements
   ↓ CodeGen
-"LispVal* v0 = make_int(42);\n..."      — C code
+[Text("LispVal v0 = ..."), ...]         — Line tree
+  ↓ Printer
+"  LispVal v0 = make_int(1);\n..."      — indented C code
   ↓ GCC
 ./output/program                        — binary
 ```
@@ -25,12 +27,12 @@ CCall("make_cons", ...)                 — C expression tree
 ## Usage
 
 ```bash
-just help            # show all commands
-just build "(42)"    # Lisp → C → GCC (compile only)
-just run "(42)"      # compile and run
-just run file.lisp   # compile and run from file
-just run-all         # run all examples
-just test            # run tests
+just help              # show all commands
+just run file.lisp     # compile and run from file
+just run -e "(+ 1 2)"  # compile and run expression
+just run -e 42         # bare expression
+just run-all           # run all examples
+just test              # run tests
 ```
 
 Output is written to `output/` directory and compiled with GCC automatically.
@@ -46,6 +48,7 @@ src/main/scala/
       LispExpr.scala            — Lisp AST types
       CExpr.scala               — C expression types
       Statement.scala           — flat C statement types
+      Line.scala                — output line tree (Text/Block)
     parse/
       Tokenizer.scala           — string → tokens
       Parser.scala              — tokens → SExpr
@@ -54,7 +57,8 @@ src/main/scala/
       Lowering.scala            — LispExpr → CExpr
     emit/
       Flatten.scala             — CExpr tree → flat Statements
-      CodeGen.scala             — Statements → C code string
+      CodeGen.scala             — Statements → List[Line]
+      Printer.scala             — Line tree → indented string
       Runtime.scala             — runtime function names
     orchestration/
       Compiler.scala            — pipeline and file output
