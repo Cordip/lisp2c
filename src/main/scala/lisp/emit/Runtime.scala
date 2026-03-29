@@ -3,6 +3,7 @@ package lisp.emit
 object Runtime:
   val makeInt = "make_int"
   val makeCons = "make_cons"
+  val makeSymbol = "make_symbol"
   val lispTrue = "LISP_TRUE"
   val lispFalse = "LISP_FALSE"
   val lispNil = "LISP_NIL"
