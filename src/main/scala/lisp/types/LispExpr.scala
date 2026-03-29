@@ -4,10 +4,10 @@ enum LispExpr:
   case LispCons(car: LispExpr, cdr: LispExpr)
   case LispNumber(value: Int)
   case LispBool(value: Boolean)
-  case LispSymbol(name: String)
+  case LispSymbol(value: String)
   case LispQuote(body: LispExpr)
   case LispIf(cond: LispExpr, thenBranch: LispExpr, elseBranch: LispExpr)
-  case LispApply(fn: LispExpr, args: List[LispExpr])
+  case LispApply(function: LispExpr, args: List[LispExpr])
   case LispNil
 
   def show: String = this match
