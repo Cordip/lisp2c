@@ -9,7 +9,7 @@ object Transform:
   def apply(input: SExpr): LispExpr =
     transform(input)
 
-  def transform(input: SExpr): LispExpr =
+  private def transform(input: SExpr): LispExpr =
     input match
       case SNil           => LispNil
       case SNumber(x)     => LispNumber(x)
