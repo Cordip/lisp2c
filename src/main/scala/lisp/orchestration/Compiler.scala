@@ -12,9 +12,9 @@ object Compiler:
 
   def pipeline(lispCode: String): String =
     val tokens = Tokenizer(lispCode)
-    val sExpr = Parser(tokens)
-    val lispExpr = Transform(sExpr)
-    val cExpr = Lowering(lispExpr)
+    val exprs = Parser.parseAll(tokens)
+    val lispExprs = exprs.map(Transform.apply)
+    val cExpr = Lowering(lispExprs.last)
     val statements = Flatten(cExpr)
     val lines = CodeGen(statements)
     Printer(lines, indent = 1)

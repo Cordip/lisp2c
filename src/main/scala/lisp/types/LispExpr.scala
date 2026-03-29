@@ -8,6 +8,7 @@ enum LispExpr:
   case LispQuote(body: LispExpr)
   case LispIf(cond: LispExpr, thenBranch: LispExpr, elseBranch: LispExpr)
   case LispApply(function: LispExpr, args: List[LispExpr])
+  case LispVar(name: String)
   case LispNil
 
   def show: String = this match
@@ -17,5 +18,6 @@ enum LispExpr:
     case LispNil            => "nil"
     case LispCons(a, b)     => s"(${a.show} . ${b.show})"
     case LispApply(f, args) => s"(${f.show} ${args.map(_.show).mkString(" ")})"
+    case LispVar(n)         => n
     case LispQuote(body)    => s"(quote ${body.show})"
     case LispIf(c, t, e)    => s"(if ${c.show} ${t.show} ${e.show})"

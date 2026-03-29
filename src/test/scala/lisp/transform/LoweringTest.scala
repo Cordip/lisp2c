@@ -105,14 +105,14 @@ class LoweringTest extends munit.FunSuite:
 
   test("addition (+ 1 2)"):
     assertEquals(
-      Lowering(LispApply(LispSymbol("+"), List(LispNumber(1), LispNumber(2)))),
+      Lowering(LispApply(LispVar("+"), List(LispNumber(1), LispNumber(2)))),
       CCall("lisp_add", List(CCall("make_int", List(CNumber(1))), CCall("make_int", List(CNumber(2)))))
     )
 
   test("nested arithmetic (* 3 (+ 1 2))"):
     assertEquals(
       Lowering(
-        LispApply(LispSymbol("*"), List(LispNumber(3), LispApply(LispSymbol("+"), List(LispNumber(1), LispNumber(2)))))
+        LispApply(LispVar("*"), List(LispNumber(3), LispApply(LispVar("+"), List(LispNumber(1), LispNumber(2)))))
       ),
       CCall(
         "lisp_mul",
@@ -125,7 +125,7 @@ class LoweringTest extends munit.FunSuite:
 
   test("subtraction (- 7 4)"):
     assertEquals(
-      Lowering(LispApply(LispSymbol("-"), List(LispNumber(7), LispNumber(4)))),
+      Lowering(LispApply(LispVar("-"), List(LispNumber(7), LispNumber(4)))),
       CCall("lisp_sub", List(CCall("make_int", List(CNumber(7))), CCall("make_int", List(CNumber(4)))))
     )
 
@@ -158,42 +158,42 @@ class LoweringTest extends munit.FunSuite:
 
   test("= maps to eqv"):
     assertEquals(
-      Lowering(LispApply(LispSymbol("="), List(LispNumber(1), LispNumber(2)))),
+      Lowering(LispApply(LispVar("="), List(LispNumber(1), LispNumber(2)))),
       CCall("lisp_eqv", List(CCall("make_int", List(CNumber(1))), CCall("make_int", List(CNumber(2)))))
     )
 
   test("eq? maps to eq"):
     assertEquals(
-      Lowering(LispApply(LispSymbol("eq?"), List(LispNumber(1), LispNumber(2)))),
+      Lowering(LispApply(LispVar("eq?"), List(LispNumber(1), LispNumber(2)))),
       CCall("lisp_eq", List(CCall("make_int", List(CNumber(1))), CCall("make_int", List(CNumber(2)))))
     )
 
   test("equal? maps to equal"):
     assertEquals(
-      Lowering(LispApply(LispSymbol("equal?"), List(LispNumber(1), LispNumber(2)))),
+      Lowering(LispApply(LispVar("equal?"), List(LispNumber(1), LispNumber(2)))),
       CCall("lisp_equal", List(CCall("make_int", List(CNumber(1))), CCall("make_int", List(CNumber(2)))))
     )
 
   test("< comparison"):
     assertEquals(
-      Lowering(LispApply(LispSymbol("<"), List(LispNumber(1), LispNumber(2)))),
+      Lowering(LispApply(LispVar("<"), List(LispNumber(1), LispNumber(2)))),
       CCall("lisp_lt", List(CCall("make_int", List(CNumber(1))), CCall("make_int", List(CNumber(2)))))
     )
 
   test("> comparison"):
     assertEquals(
-      Lowering(LispApply(LispSymbol(">"), List(LispNumber(1), LispNumber(2)))),
+      Lowering(LispApply(LispVar(">"), List(LispNumber(1), LispNumber(2)))),
       CCall("lisp_gt", List(CCall("make_int", List(CNumber(1))), CCall("make_int", List(CNumber(2)))))
     )
 
   test("car"):
     assertEquals(
-      Lowering(LispApply(LispSymbol("car"), List(LispNil))),
+      Lowering(LispApply(LispVar("car"), List(LispNil))),
       CCall("lisp_car", List(CVar("LISP_NIL")))
     )
 
   test("cdr"):
     assertEquals(
-      Lowering(LispApply(LispSymbol("cdr"), List(LispNil))),
+      Lowering(LispApply(LispVar("cdr"), List(LispNil))),
       CCall("lisp_cdr", List(CVar("LISP_NIL")))
     )
