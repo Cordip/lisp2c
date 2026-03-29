@@ -1,6 +1,6 @@
 package lisp.orchestration
 
-import lisp.emit.{CodeGen, Flatten}
+import lisp.emit.{CodeGen, Flatten, Printer}
 import lisp.parse.{Parser, Tokenizer}
 import lisp.transform.{Lowering, Transform}
 
@@ -9,23 +9,25 @@ import scala.io.Source
 import scala.util.Using
 
 object Compiler:
+
   def pipeline(lispCode: String): String =
     val tokens = Tokenizer(lispCode)
     val sExpr = Parser(tokens)
     val lispExpr = Transform(sExpr)
     val cExpr = Lowering(lispExpr)
     val statements = Flatten(cExpr)
-    CodeGen(statements)
+    val lines = CodeGen(statements)
+    Printer(lines, indent = 1)
 
   private def writeFile(dir: File, name: String, content: String): Unit =
-    Using(PrintWriter(File(dir, name)))(_.write(content))
+    Using(PrintWriter(File(dir, name)))(_.write(content)).get
 
   def readResource(name: String): String =
     Using(Source.fromResource(name))(_.mkString).get
 
   def initializeOutput(output: String): Unit =
     val outDir = File("output")
-    if (!outDir.exists()) outDir.mkdirs()
+    if !outDir.exists() then outDir.mkdirs()
     val tagsH = readResource("tags.h")
     val runtimeH = readResource("runtime.h")
     val runtimeC = readResource("runtime.c")

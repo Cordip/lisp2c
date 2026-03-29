@@ -11,8 +11,7 @@ import scala.util.Using
   val input = args.mkString(" ").trim
   val file = File(input)
   val lispCode =
-    if input.startsWith("(") && input.endsWith(")") then
-      input
+    if input.startsWith("(") && input.endsWith(")") then input
     else
       if !file.exists() then
         println(s"File not found: $input")
@@ -21,7 +20,6 @@ import scala.util.Using
 
   val cCode = Compiler.pipeline(lispCode)
   val template = Compiler.readResource("template.c")
-  val indented = "    " + cCode.replaceAll("\n", "\n    ")
-  val output = template.replace("{{BODY}}", indented)
+  val output = template.replace("{{BODY}}", cCode)
 
   Compiler.initializeOutput(output)
