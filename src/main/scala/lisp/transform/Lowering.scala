@@ -17,7 +17,7 @@ object Lowering:
       case LispNumber(value)                    => CCall(makeInt, List(CNumber(value)))
       case LispBool(true)                       => CVar(lispTrue)
       case LispBool(false)                      => CVar(lispFalse)
-      case LispSymbol(value)                    => CCall(makeSymbol, List(CStringLit(value)))
+      case LispSymbol(value)                    => throw new Exception(s"unresolved variable $value")
       case LispQuote(body)                      => lowerQuote(body)
       case LispIf(cond, thenBranch, elseBranch) => CIf(lower(cond), lower(thenBranch), lower(elseBranch))
       case LispApply(LispSymbol(symbol), args)  => lowerFunc(symbol, args)
@@ -31,13 +31,13 @@ object Lowering:
       case LispBool(false) => CVar(lispFalse)
       case LispCons(a, b) => CCall(makeCons, List(lowerQuote(a), lowerQuote(b)))
       case LispSymbol(name) => CCall(makeSymbol, List(CStringLit(name)))
-      case _ => throw new Exception(s"lowerQuote: unsupported expression: $input")
+      case _ => throw new Exception(s"unsupported expression $input")
 
   private def lowerFunc(symbol: String, args: List[LispExpr]): CExpr =
     functions.get(symbol) match
       case Some((func, arity)) if args.length == arity => CCall(func, args.map(lower))
       case Some(_)                                     => throw new Exception(s"Wrong arity for $symbol")
-      case None => throw new Exception(s"Unsupported function $symbol with ${args.length} args")
+      case None => throw new Exception(s"unsupported function $symbol with ${args.length} args")
 
   private val functions = Map(
     "cons" -> (makeCons, 2),
