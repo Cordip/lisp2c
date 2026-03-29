@@ -33,6 +33,7 @@ object Flatten:
     input match
       case n: CNumber => n
       case v: CVar    => v
+      case s: CStringLit => s
       case CIf(cond, thenBranch, elseBranch) =>
         val condVar = flatten(cond, ctx) match
           case CVar(name) => name

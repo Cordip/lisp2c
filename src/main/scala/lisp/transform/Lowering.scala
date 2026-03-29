@@ -2,7 +2,7 @@ package lisp.transform
 
 import lisp.emit.Runtime.*
 import lisp.types.{CExpr, LispExpr}
-import lisp.types.CExpr.{CCall, CIf, CNumber, CVar}
+import lisp.types.CExpr.*
 import lisp.types.LispExpr.*
 
 object Lowering:
@@ -15,6 +15,7 @@ object Lowering:
       case LispBool(true)                       => CVar(lispTrue)
       case LispBool(false)                      => CVar(lispFalse)
       case LispSymbol(value)                    => throw new Exception(s"Unexpected symbol in lowering: $value")
+      case LispQuote(body)                      => lowerQuote(body)
       case LispIf(cond, thenBranch, elseBranch) => CIf(apply(cond), apply(thenBranch), apply(elseBranch))
       case LispApply(LispSymbol(symbol), args)  => lowerFunc(symbol, args)
       case LispApply(function, _)               => throw new Exception(s"${function.show} is not callable")
@@ -37,3 +38,13 @@ object Lowering:
     "<" -> (lispLt, 2),
     ">" -> (lispGt, 2)
   )
+
+  private def lowerQuote(input: LispExpr): CExpr =
+    input match
+      case LispNil          => CVar(lispNil)
+      case LispNumber(n)    => CCall(makeInt, List(CNumber(n)))
+      case LispBool(true)   => CVar(lispTrue)
+      case LispBool(false)  => CVar(lispFalse)
+      case LispCons(a, b)   => CCall(makeCons, List(lowerQuote(a), lowerQuote(b)))
+      case LispSymbol(name) => CCall(makeSymbol, List(CStringLit(name)))
+      case _                => throw new Exception(s"lowerQuote: unsupported expression: $input")

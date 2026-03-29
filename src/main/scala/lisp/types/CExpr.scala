@@ -4,4 +4,5 @@ enum CExpr:
   case CCall(name: String, args: List[CExpr])
   case CIf(cond: CExpr, thenBranch: CExpr, elseBranch: CExpr)
   case CNumber(value: Int)
+  case CStringLit(value: String)
   case CVar(name: String)

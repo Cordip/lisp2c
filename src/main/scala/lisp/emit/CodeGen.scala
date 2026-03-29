@@ -33,6 +33,7 @@ object CodeGen:
   private def emitExpr(expr: CExpr): String =
     expr match
       case CNumber(value)    => value.toString
+      case CStringLit(s)     => s"\"$s\""
       case CVar(name)        => name
       case CCall(name, args) => name + "(" + args.map(emitExpr).mkString(", ") + ")"
       case CIf(_, _, _)      => throw new Exception("CIf must be flattened before codegen")
