@@ -131,3 +131,8 @@ class TransformTest extends munit.FunSuite:
         LispApply(LispSymbol("+"), List(LispNumber(1), LispNumber(2)))
       ))
     )
+
+  test("uppercase NIL symbol is nil"):
+    assertEquals(Transform(SSymbol("NIL")), LispNil)
+    assertEquals(Transform(SSymbol("Nil")), LispNil)
+    assertEquals(Transform(SSymbol("nIL")), LispNil)
