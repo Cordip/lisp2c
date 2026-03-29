@@ -121,7 +121,9 @@ class LoweringTest extends munit.FunSuite:
     )
 
   test("number is not callable"):
-    intercept[Exception] { Lowering(LispApply(LispNumber(42), List())) }
+    intercept[Exception] {
+      Lowering(LispApply(LispNumber(42), List()))
+    }
 
   test("bool true"):
     assertEquals(
