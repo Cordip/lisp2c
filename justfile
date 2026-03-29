@@ -21,13 +21,13 @@ help:
 
 # Lisp → C → GCC
 [group('build')]
-build input:
-    {{sbt}} "run {{input}}"
+build +args:
+    {{sbt}} "run {{args}}"
     gcc -Ioutput output/output.c output/runtime.c -o output/program
 
 # Build and run
 [group('run')]
-run input: (build input)
+run +args: (build args)
     ./output/program
 
 # Run all examples
