@@ -42,6 +42,12 @@ class TransformTest extends munit.FunSuite:
       LispApply(LispSymbol("foo"), List(LispNumber(1), LispNumber(2)))
     )
 
+  test("if missing else throws"):
+    intercept[Exception] { Transform(SList(List(SSymbol("if"), SBool(true), SNumber(1)))) }
+
+  test("if extra args throws"):
+    intercept[Exception] { Transform(SList(List(SSymbol("if"), SBool(true), SNumber(1), SNumber(2), SNumber(3)))) }
+
   test("if"):
     val input = SList(List(SSymbol("if"), SBool(true), SNumber(1), SNumber(2)))
     assertEquals(
@@ -50,11 +56,14 @@ class TransformTest extends munit.FunSuite:
     )
 
   test("nested if"):
-    val input = SList(List(
-      SSymbol("if"), SBool(true),
-      SList(List(SSymbol("if"), SBool(false), SNumber(1), SNumber(2))),
-      SNumber(3)
-    ))
+    val input = SList(
+      List(
+        SSymbol("if"),
+        SBool(true),
+        SList(List(SSymbol("if"), SBool(false), SNumber(1), SNumber(2))),
+        SNumber(3)
+      )
+    )
     assertEquals(
       Transform(input),
       LispIf(
