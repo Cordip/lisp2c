@@ -1,9 +1,9 @@
 package lisp.transform
 
 import lisp.emit.Runtime.*
-import lisp.types.{CExpr, LispExpr}
 import lisp.types.CExpr.*
 import lisp.types.LispExpr.*
+import lisp.types.{CExpr, LispExpr}
 
 object Lowering:
 
@@ -26,6 +26,16 @@ object Lowering:
       case Some(_)                                     => throw new Exception(s"Wrong arity for $symbol")
       case None => throw new Exception(s"Unsupported function $symbol with ${args.length} args")
 
+  private def lowerQuote(input: LispExpr): CExpr =
+    input match
+      case LispNil          => CVar(lispNil)
+      case LispNumber(n)    => CCall(makeInt, List(CNumber(n)))
+      case LispBool(true)   => CVar(lispTrue)
+      case LispBool(false)  => CVar(lispFalse)
+      case LispCons(a, b)   => CCall(makeCons, List(lowerQuote(a), lowerQuote(b)))
+      case LispSymbol(name) => CCall(makeSymbol, List(CStringLit(name)))
+      case _ => throw new Exception(s"lowerQuote: unsupported expression: $input")
+
   private val functions = Map(
     "cons" -> (makeCons, 2),
     "+" -> (lispAdd, 2),
@@ -38,13 +48,3 @@ object Lowering:
     "<" -> (lispLt, 2),
     ">" -> (lispGt, 2)
   )
-
-  private def lowerQuote(input: LispExpr): CExpr =
-    input match
-      case LispNil          => CVar(lispNil)
-      case LispNumber(n)    => CCall(makeInt, List(CNumber(n)))
-      case LispBool(true)   => CVar(lispTrue)
-      case LispBool(false)  => CVar(lispFalse)
-      case LispCons(a, b)   => CCall(makeCons, List(lowerQuote(a), lowerQuote(b)))
-      case LispSymbol(name) => CCall(makeSymbol, List(CStringLit(name)))
-      case _                => throw new Exception(s"lowerQuote: unsupported expression: $input")

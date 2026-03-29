@@ -1,9 +1,8 @@
 package lisp.transform
 
-import lisp.types.SExpr
-import lisp.types.SExpr.*
-import lisp.types.LispExpr
 import lisp.types.LispExpr.*
+import lisp.types.SExpr.*
+import lisp.types.{LispExpr, SExpr}
 
 object Transform:
 
@@ -29,7 +28,7 @@ object Transform:
       case SList(head :: args) =>
         LispApply(transform(head), args.map(transform))
 
-  def transformQuoted(input: SExpr): LispExpr =
+  private def transformQuoted(input: SExpr): LispExpr =
     input match
       case SNil              => LispNil
       case SNumber(x)        => LispNumber(x)

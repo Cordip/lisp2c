@@ -1,8 +1,8 @@
 package lisp.emit
 
-import lisp.types.{CExpr, Statement}
 import lisp.types.CExpr.*
 import lisp.types.Statement.*
+import lisp.types.{CExpr, Statement}
 
 import scala.collection.mutable
 
@@ -18,8 +18,11 @@ private class FlattenCtx(private val state: FlattenState):
   private val stmts = mutable.ListBuffer[Statement]()
 
   def emit(stmt: Statement): Unit = stmts += stmt
+
   def freshVar(): String = state.freshVar()
+
   def nested(): FlattenCtx = FlattenCtx(state)
+
   def result: List[Statement] = stmts.toList
 
 object Flatten:
