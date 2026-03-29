@@ -6,8 +6,8 @@ LispVal lisp(void) {
 }
 
 int main(void) {
-    LispVal result = lisp();
-    print_val(result);
-    printf("\n");
-    return 0;
+  LispVal result = lisp();
+  print_val(result);
+  printf("\n");
+  return 0;
 }

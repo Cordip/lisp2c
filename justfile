@@ -51,6 +51,26 @@ test:
 test-runtime:
     gcc -Isrc/main/resources -Itest test/test_runtime.c test/unity.c src/main/resources/runtime.c -o test/test_runtime && ./test/test_runtime
 
+# Format all code
+[group('dev')]
+fmt:
+    scalafmt src/
+    clang-format -i src/main/resources/runtime.c src/main/resources/runtime.h
+
+# Check formatting and lint
+[group('dev')]
+lint:
+    scalafmt --check src/
+    clang-format --dry-run --Werror src/main/resources/runtime.c src/main/resources/runtime.h
+    sbt --no-colors "scalafix --check"
+
+# Auto-fix lint issues + format
+[group('dev')]
+fix:
+    sbt --no-colors "scalafix"
+    scalafmt src/
+    clang-format -i src/main/resources/runtime.c src/main/resources/runtime.h
+
 # Remove build artifacts
 [group('build')]
 clean:

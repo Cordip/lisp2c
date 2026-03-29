@@ -11,5 +11,11 @@ class TokenizerTest extends munit.FunSuite:
   test("multiple tokens"):
     assertEquals(Tokenizer("(1 2 3)"), List("(", "1", "2", "3", ")"))
 
+  test("symbols"):
+    assertEquals(Tokenizer("(+ 1 2)"), List("(", "+", "1", "2", ")"))
+
+  test("booleans"):
+    assertEquals(Tokenizer("(if #t #f)"), List("(", "if", "#t", "#f", ")"))
+
   test("empty string"):
     assertEquals(Tokenizer(""), List())
