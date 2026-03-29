@@ -15,6 +15,9 @@ class TransformTest extends munit.FunSuite:
   test("nil"):
     assertEquals(Transform(SNil), LispNil)
 
+  test("uppercase NIL symbol is nil"):
+    assertEquals(Transform(SSymbol("NIL")), LispNil)
+
   test("empty list"):
     assertEquals(Transform(SList(Nil)), LispNil)
 
