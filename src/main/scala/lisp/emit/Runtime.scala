@@ -4,8 +4,6 @@ object Runtime:
   val makeInt = "make_int"
   val makeCons = "make_cons"
   val makeSymbol = "make_symbol"
-  val makeBool = "make_bool"
-  val isTruthy = "is_truthy"
   val lispTrue = "LISP_TRUE"
   val lispFalse = "LISP_FALSE"
   val lispNil = "LISP_NIL"
