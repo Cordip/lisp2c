@@ -49,5 +49,5 @@ object Lowering:
     "eqv?" -> (lispEqv, 2),
     "equal?" -> (lispEqual, 2),
     "<" -> (lispLt, 2),
-    ">" -> (lispGt, 2)
+    ">" -> (lispGt, 2),
   )
