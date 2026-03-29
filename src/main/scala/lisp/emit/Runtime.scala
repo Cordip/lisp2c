@@ -14,3 +14,5 @@ object Runtime:
   val lispEqual = "lisp_equal"
   val lispLt = "lisp_lt"
   val lispGt = "lisp_gt"
+  val lispCar = "lisp_car"
+  val lispCdr = "lisp_cdr"
