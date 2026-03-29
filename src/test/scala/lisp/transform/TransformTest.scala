@@ -32,14 +32,14 @@ class TransformTest extends munit.FunSuite:
     val sexpr = SList(List(SSymbol("+"), SNumber(1), SNumber(2)))
     assertEquals(
       Transform(sexpr),
-      LispApply(LispSymbol("+"), List(LispNumber(1), LispNumber(2)))
+      LispApply(LispVar("+"), List(LispNumber(1), LispNumber(2)))
     )
 
   test("user function apply"):
     val sexpr = SList(List(SSymbol("foo"), SNumber(1), SNumber(2)))
     assertEquals(
       Transform(sexpr),
-      LispApply(LispSymbol("foo"), List(LispNumber(1), LispNumber(2)))
+      LispApply(LispVar("foo"), List(LispNumber(1), LispNumber(2)))
     )
 
   test("if missing else throws"):
@@ -119,15 +119,18 @@ class TransformTest extends munit.FunSuite:
     val input = SList(List(SSymbol("+"), SNumber(1), SNumber(2)))
     assertEquals(
       Transform(input),
-      LispApply(LispSymbol("+"), List(LispNumber(1), LispNumber(2)))
+      LispApply(LispVar("+"), List(LispNumber(1), LispNumber(2)))
     )
 
   test("nested application"):
     val input = SList(List(SSymbol("*"), SNumber(3), SList(List(SSymbol("+"), SNumber(1), SNumber(2)))))
     assertEquals(
       Transform(input),
-      LispApply(LispSymbol("*"), List(
-        LispNumber(3),
-        LispApply(LispSymbol("+"), List(LispNumber(1), LispNumber(2)))
-      ))
+      LispApply(
+        LispVar("*"),
+        List(
+          LispNumber(3),
+          LispApply(LispVar("+"), List(LispNumber(1), LispNumber(2)))
+        )
+      )
     )

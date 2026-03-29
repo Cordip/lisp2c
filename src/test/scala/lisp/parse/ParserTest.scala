@@ -50,3 +50,17 @@ class ParserTest extends munit.FunSuite:
     intercept[Exception] {
       Parser(List(")"))
     }
+
+  test("parseAll multiple forms"):
+    val tokens = Tokenizer("(+ 1 2) (+ 3 4)")
+    assertEquals(
+      Parser.parseAll(tokens),
+      List(
+        SList(List(SSymbol("+"), SNumber(1), SNumber(2))),
+        SList(List(SSymbol("+"), SNumber(3), SNumber(4)))
+      )
+    )
+
+  test("parseAll single form"):
+    val tokens = Tokenizer("(42)")
+    assertEquals(Parser.parseAll(tokens), List(SList(List(SNumber(42)))))
