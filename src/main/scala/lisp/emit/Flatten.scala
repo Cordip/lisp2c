@@ -1,8 +1,8 @@
 package lisp.emit
 
+import lisp.types.{CExpr, Statement}
 import lisp.types.CExpr.*
 import lisp.types.Statement.*
-import lisp.types.{CExpr, Statement}
 
 import scala.collection.mutable
 
@@ -34,8 +34,8 @@ object Flatten:
 
   private def flatten(input: CExpr, ctx: FlattenCtx): CExpr =
     input match
-      case n: CNumber => n
-      case v: CVar    => v
+      case n: CNumber    => n
+      case v: CVar       => v
       case s: CStringLit => s
       case CIf(cond, thenBranch, elseBranch) =>
         val condVar = flatten(cond, ctx) match

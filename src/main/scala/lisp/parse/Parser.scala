@@ -12,6 +12,13 @@ object Parser:
   def apply(tokens: List[String]): SExpr =
     parse(tokens)._1
 
+  def parseAll(tokens: List[String]): List[SExpr] =
+    tokens match
+      case Nil => List()
+      case _ =>
+        val (expr, rest) = parse(tokens)
+        expr :: parseAll(rest)
+
   private def parse(tokens: List[String]): (SExpr, List[String]) =
     tokens match
       case Nil         => throw new Exception("Empty input")
