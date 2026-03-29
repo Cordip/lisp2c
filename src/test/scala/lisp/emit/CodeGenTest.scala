@@ -10,6 +10,10 @@ class CodeGenTest extends munit.FunSuite:
     val input = List(Value("v0", CCall("foo", List(CNumber(42)))))
     assertEquals(CodeGen(input), List(Text("LispVal v0 = foo(42);")))
 
+  test("string literal arg"):
+    val input = List(Value("v0", CCall("make_symbol", List(CStringLit("foo")))))
+    assertEquals(CodeGen(input), List(Text("LispVal v0 = make_symbol(\"foo\");")))
+
   test("multiple values"):
     val input = List(
       Value("v0", CCall("foo", List(CNumber(42)))),
