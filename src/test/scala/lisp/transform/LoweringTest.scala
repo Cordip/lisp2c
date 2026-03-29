@@ -176,3 +176,15 @@ class LoweringTest extends munit.FunSuite:
       Lowering(LispApply(LispSymbol(">"), List(LispNumber(1), LispNumber(2)))),
       CCall("lisp_gt", List(CCall("make_int", List(CNumber(1))), CCall("make_int", List(CNumber(2)))))
     )
+
+  test("car"):
+    assertEquals(
+      Lowering(LispApply(LispSymbol("car"), List(LispNil))),
+      CCall("lisp_car", List(CVar("LISP_NIL")))
+    )
+
+  test("cdr"):
+    assertEquals(
+      Lowering(LispApply(LispSymbol("cdr"), List(LispNil))),
+      CCall("lisp_cdr", List(CVar("LISP_NIL")))
+    )

@@ -50,4 +50,6 @@ object Lowering:
     "equal?" -> (lispEqual, 2),
     "<" -> (lispLt, 2),
     ">" -> (lispGt, 2),
+    "car" -> (lispCar, 1),
+    "cdr" -> (lispCdr, 1),
   )
