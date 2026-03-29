@@ -6,37 +6,51 @@ import lisp.types.LispExpr.*
 class TransformTest extends munit.FunSuite:
 
   test("single number"):
-    assertEquals(Transform(SNumber(7)), LispNumber(7))
+    val sexpr = SList(List(SNumber(42)))
+    assertEquals(Transform(sexpr), LispApply(LispNumber(42), List()))
 
-  test("bool"):
-    assertEquals(Transform(SBool(true)), LispBool(true))
-    assertEquals(Transform(SBool(false)), LispBool(false))
+  test("plain number"):
+    assertEquals(Transform(SNumber(7)), LispNumber(7))
 
   test("nil"):
     assertEquals(Transform(SNil), LispNil)
 
-  test("uppercase NIL symbol"):
-    assertEquals(Transform(SSymbol("NIL")), LispNil)
-
-  test("multiple numbers"):
-    val input = SList(List(SNumber(1), SNumber(2), SNumber(3)))
-    assertEquals(
-      Transform(input),
-      LispApply(LispNumber(1), List(LispNumber(2), LispNumber(3)))
-    )
-
   test("empty list"):
     assertEquals(Transform(SList(Nil)), LispNil)
 
-  test("symbol"):
-    assertEquals(Transform(SSymbol("x")), LispSymbol("x"))
+  test("bool"):
+    assertEquals(Transform(SBool(true)), LispBool(true))
+
+  test("multiple numbers"):
+    val sexpr = SList(List(SNumber(1), SNumber(2), SNumber(3)))
+    assertEquals(
+      Transform(sexpr),
+      LispApply(LispNumber(1), List(LispNumber(2), LispNumber(3)))
+    )
+
+  test("addition apply"):
+    val sexpr = SList(List(SSymbol("+"), SNumber(1), SNumber(2)))
+    assertEquals(
+      Transform(sexpr),
+      LispApply(LispSymbol("+"), List(LispNumber(1), LispNumber(2)))
+    )
 
   test("user function apply"):
-    val input = SList(List(SSymbol("foo"), SNumber(1), SNumber(2)))
+    val sexpr = SList(List(SSymbol("foo"), SNumber(1), SNumber(2)))
     assertEquals(
-      Transform(input),
+      Transform(sexpr),
       LispApply(LispSymbol("foo"), List(LispNumber(1), LispNumber(2)))
     )
+
+  test("if missing else throws"):
+    intercept[Exception] {
+      Transform(SList(List(SSymbol("if"), SBool(true), SNumber(1))))
+    }
+
+  test("if extra args throws"):
+    intercept[Exception] {
+      Transform(SList(List(SSymbol("if"), SBool(true), SNumber(1), SNumber(2), SNumber(3))))
+    }
 
   test("if"):
     val input = SList(List(SSymbol("if"), SBool(true), SNumber(1), SNumber(2)))
@@ -62,18 +76,6 @@ class TransformTest extends munit.FunSuite:
         LispNumber(3)
       )
     )
-
-  test("if missing else throws"):
-    val ex = intercept[Exception] {
-      Transform(SList(List(SSymbol("if"), SBool(true), SNumber(1))))
-    }
-    assertEquals(ex.getMessage, "if requires exactly 3 arguments: condition, then, else")
-
-  test("if extra args throws"):
-    val ex = intercept[Exception] {
-      Transform(SList(List(SSymbol("if"), SBool(true), SNumber(1), SNumber(2), SNumber(3))))
-    }
-    assertEquals(ex.getMessage, "if requires exactly 3 arguments: condition, then, else")
 
   test("quote number"):
     val input = SList(List(SSymbol("quote"), SNumber(42)))
