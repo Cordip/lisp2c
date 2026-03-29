@@ -23,6 +23,13 @@ class ParserTest extends munit.FunSuite:
     val tokens = Tokenizer("(+ 1 2)")
     assertEquals(Parser(tokens), SList(List(SSymbol("+"), SNumber(1), SNumber(2))))
 
+  test("quote with symbol"):
+    val tokens = Tokenizer("(quote foo)")
+    assertEquals(
+      Parser(tokens),
+      SList(List(SSymbol("quote"), SSymbol("foo")))
+    )
+
   test("bool true"):
     val tokens = Tokenizer("(#t)")
     assertEquals(Parser(tokens), SList(List(SBool(true))))

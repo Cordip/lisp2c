@@ -15,6 +15,13 @@ class FlattenTest extends munit.FunSuite:
       )
     )
 
+  test("string literal leaf"):
+    val input = CStringLit("foo")
+    assertEquals(
+      Flatten(input),
+      List(Return(CStringLit("foo")))
+    )
+
   test("call without args"):
     val input = CCall("bar", List())
     assertEquals(

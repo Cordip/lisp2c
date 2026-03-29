@@ -43,10 +43,14 @@ class TransformTest extends munit.FunSuite:
     )
 
   test("if missing else throws"):
-    intercept[Exception] { Transform(SList(List(SSymbol("if"), SBool(true), SNumber(1)))) }
+    intercept[Exception] {
+      Transform(SList(List(SSymbol("if"), SBool(true), SNumber(1))))
+    }
 
   test("if extra args throws"):
-    intercept[Exception] { Transform(SList(List(SSymbol("if"), SBool(true), SNumber(1), SNumber(2), SNumber(3)))) }
+    intercept[Exception] {
+      Transform(SList(List(SSymbol("if"), SBool(true), SNumber(1), SNumber(2), SNumber(3))))
+    }
 
   test("if"):
     val input = SList(List(SSymbol("if"), SBool(true), SNumber(1), SNumber(2)))
@@ -71,4 +75,59 @@ class TransformTest extends munit.FunSuite:
         LispIf(LispBool(false), LispNumber(1), LispNumber(2)),
         LispNumber(3)
       )
+    )
+
+  test("quote number"):
+    val input = SList(List(SSymbol("quote"), SNumber(42)))
+    assertEquals(Transform(input), LispQuote(LispNumber(42)))
+
+  test("quote symbol"):
+    val input = SList(List(SSymbol("quote"), SSymbol("foo")))
+    assertEquals(Transform(input), LispQuote(LispSymbol("foo")))
+
+  test("quote list"):
+    val input = SList(List(SSymbol("quote"), SList(List(SNumber(1), SNumber(2)))))
+    assertEquals(
+      Transform(input),
+      LispQuote(LispCons(LispNumber(1), LispCons(LispNumber(2), LispNil)))
+    )
+
+  test("quote empty list"):
+    val input = SList(List(SSymbol("quote"), SList(Nil)))
+    assertEquals(Transform(input), LispQuote(LispNil))
+
+  test("quote nested quote"):
+    val input = SList(List(SSymbol("quote"), SList(List(SSymbol("quote"), SSymbol("foo")))))
+    assertEquals(
+      Transform(input),
+      LispQuote(LispCons(LispSymbol("quote"), LispCons(LispSymbol("foo"), LispNil)))
+    )
+
+  test("quote missing body throws"):
+    val ex = intercept[Exception] {
+      Transform(SList(List(SSymbol("quote"))))
+    }
+    assertEquals(ex.getMessage, "quote requires exactly 1 argument")
+
+  test("quote extra args throws"):
+    val ex = intercept[Exception] {
+      Transform(SList(List(SSymbol("quote"), SSymbol("a"), SSymbol("b"))))
+    }
+    assertEquals(ex.getMessage, "quote requires exactly 1 argument")
+
+  test("application"):
+    val input = SList(List(SSymbol("+"), SNumber(1), SNumber(2)))
+    assertEquals(
+      Transform(input),
+      LispApply(LispSymbol("+"), List(LispNumber(1), LispNumber(2)))
+    )
+
+  test("nested application"):
+    val input = SList(List(SSymbol("*"), SNumber(3), SList(List(SSymbol("+"), SNumber(1), SNumber(2)))))
+    assertEquals(
+      Transform(input),
+      LispApply(LispSymbol("*"), List(
+        LispNumber(3),
+        LispApply(LispSymbol("+"), List(LispNumber(1), LispNumber(2)))
+      ))
     )

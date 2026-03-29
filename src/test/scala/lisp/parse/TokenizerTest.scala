@@ -19,3 +19,6 @@ class TokenizerTest extends munit.FunSuite:
 
   test("empty string"):
     assertEquals(Tokenizer(""), List())
+
+  test("quote expression"):
+    assertEquals(Tokenizer("(quote foo)"), List("(", "quote", "foo", ")"))
