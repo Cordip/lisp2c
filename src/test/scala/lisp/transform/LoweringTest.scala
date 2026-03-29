@@ -14,7 +14,7 @@ class LoweringTest extends munit.FunSuite:
   test("nil"):
     assertEquals(
       Lowering(LispNil),
-      CCall("make_nil", List())
+      CVar("LISP_NIL")
     )
 
   test("cons pair"):
@@ -27,16 +27,25 @@ class LoweringTest extends munit.FunSuite:
     val input = LispCons(LispNumber(1), LispCons(LispNumber(2), LispCons(LispNumber(3), LispNil)))
     assertEquals(
       Lowering(input),
-      CCall("make_cons", List(
-        CCall("make_int", List(CNumber(1))),
-        CCall("make_cons", List(
-          CCall("make_int", List(CNumber(2))),
-          CCall("make_cons", List(
-            CCall("make_int", List(CNumber(3))),
-            CCall("make_nil", List())
-          ))
-        ))
-      ))
+      CCall(
+        "make_cons",
+        List(
+          CCall("make_int", List(CNumber(1))),
+          CCall(
+            "make_cons",
+            List(
+              CCall("make_int", List(CNumber(2))),
+              CCall(
+                "make_cons",
+                List(
+                  CCall("make_int", List(CNumber(3))),
+                  CVar("LISP_NIL")
+                )
+              )
+            )
+          )
+        )
+      )
     )
 
   test("addition (+ 1 2)"):
@@ -47,11 +56,16 @@ class LoweringTest extends munit.FunSuite:
 
   test("nested arithmetic (* 3 (+ 1 2))"):
     assertEquals(
-      Lowering(LispApply(LispSymbol("*"), List(LispNumber(3), LispApply(LispSymbol("+"), List(LispNumber(1), LispNumber(2)))))),
-      CCall("lisp_mul", List(
-        CCall("make_int", List(CNumber(3))),
-        CCall("lisp_add", List(CCall("make_int", List(CNumber(1))), CCall("make_int", List(CNumber(2)))))
-      ))
+      Lowering(
+        LispApply(LispSymbol("*"), List(LispNumber(3), LispApply(LispSymbol("+"), List(LispNumber(1), LispNumber(2)))))
+      ),
+      CCall(
+        "lisp_mul",
+        List(
+          CCall("make_int", List(CNumber(3))),
+          CCall("lisp_add", List(CCall("make_int", List(CNumber(1))), CCall("make_int", List(CNumber(2)))))
+        )
+      )
     )
 
   test("subtraction (- 7 4)"):
@@ -60,24 +74,57 @@ class LoweringTest extends munit.FunSuite:
       CCall("lisp_sub", List(CCall("make_int", List(CNumber(7))), CCall("make_int", List(CNumber(4)))))
     )
 
+  test("number is not callable"):
+    intercept[Exception] { Lowering(LispApply(LispNumber(42), List())) }
+
   test("bool true"):
     assertEquals(
       Lowering(LispBool(true)),
-      CCall("make_bool", List(CNumber(1)))
+      CVar("LISP_TRUE")
     )
 
   test("bool false"):
     assertEquals(
       Lowering(LispBool(false)),
-      CCall("make_bool", List(CNumber(0)))
+      CVar("LISP_FALSE")
     )
 
   test("if"):
     assertEquals(
       Lowering(LispIf(LispBool(true), LispNumber(1), LispNumber(2))),
       CIf(
-        CCall("make_bool", List(CNumber(1))),
+        CVar("LISP_TRUE"),
         CCall("make_int", List(CNumber(1))),
         CCall("make_int", List(CNumber(2)))
       )
+    )
+
+  test("= maps to eqv"):
+    assertEquals(
+      Lowering(LispApply(LispSymbol("="), List(LispNumber(1), LispNumber(2)))),
+      CCall("lisp_eqv", List(CCall("make_int", List(CNumber(1))), CCall("make_int", List(CNumber(2)))))
+    )
+
+  test("eq? maps to eq"):
+    assertEquals(
+      Lowering(LispApply(LispSymbol("eq?"), List(LispNumber(1), LispNumber(2)))),
+      CCall("lisp_eq", List(CCall("make_int", List(CNumber(1))), CCall("make_int", List(CNumber(2)))))
+    )
+
+  test("equal? maps to equal"):
+    assertEquals(
+      Lowering(LispApply(LispSymbol("equal?"), List(LispNumber(1), LispNumber(2)))),
+      CCall("lisp_equal", List(CCall("make_int", List(CNumber(1))), CCall("make_int", List(CNumber(2)))))
+    )
+
+  test("< comparison"):
+    assertEquals(
+      Lowering(LispApply(LispSymbol("<"), List(LispNumber(1), LispNumber(2)))),
+      CCall("lisp_lt", List(CCall("make_int", List(CNumber(1))), CCall("make_int", List(CNumber(2)))))
+    )
+
+  test("> comparison"):
+    assertEquals(
+      Lowering(LispApply(LispSymbol(">"), List(LispNumber(1), LispNumber(2)))),
+      CCall("lisp_gt", List(CCall("make_int", List(CNumber(1))), CCall("make_int", List(CNumber(2)))))
     )
