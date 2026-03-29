@@ -11,13 +11,13 @@ object CodeGen:
 
   def apply(stmt: Statement): List[String] =
     stmt match
-      case Value(name, call) => List(s"LispVal* $name = ${emitCall(call)};")
+      case Value(name, call) => List(s"LispVal $name = ${emitCall(call)};")
       case Return(expr) => List(s"return ${emitExpr(expr)};")
       case Assign(target, source) => List(s"$target = $source;")
       case If(cond, thenBranch, elseBranch, resultVar) =>
         val thenLines = thenBranch.flatMap(apply).map("    " + _)
         val elseLines = elseBranch.flatMap(apply).map("    " + _)
-        List(s"LispVal* $resultVar;") ++ List(s"if (is_truthy($cond)) {") ++ thenLines ++ List("} else {") ++ elseLines ++ List("}")
+        List(s"LispVal $resultVar;") ++ List(s"if (is_truthy($cond)) {") ++ thenLines ++ List("} else {") ++ elseLines ++ List("}")
 
   private def emitCall(call: CCall): String =
     call.name + "(" + call.args.map(emitExpr).mkString(", ") + ")"
