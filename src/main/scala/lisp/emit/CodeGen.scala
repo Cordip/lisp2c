@@ -12,7 +12,7 @@ object CodeGen:
 
   private def emitStatement(stmt: Statement): List[Line] =
     stmt match
-      case Value(name, call)      => List(Text(s"LispVal $name = ${emitCall(call)};"))
+      case Value(name, expr)      => List(Text(s"LispVal $name = ${emitExpr(expr)};"))
       case Return(expr)           => List(Text(s"return ${emitExpr(expr)};"))
       case Assign(target, source) => List(Text(s"$target = $source;"))
       case If(cond, thenBranch, elseBranch, resultVar) =>
@@ -26,9 +26,6 @@ object CodeGen:
           Block(elseLines),
           Text("}")
         )
-
-  private def emitCall(call: CCall): String =
-    call.name + "(" + call.args.map(emitExpr).mkString(", ") + ")"
 
   private def emitExpr(expr: CExpr): String =
     expr match

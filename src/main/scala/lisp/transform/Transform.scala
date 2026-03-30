@@ -15,7 +15,7 @@ object Transform:
       case SNumber(x)     => LispNumber(x)
       case SBool(v)       => LispBool(v)
       case SSymbol("nil") => LispNil
-      case SSymbol(value) => LispSymbol(value)
+      case SSymbol(value) => LispVar(value)
       case SList(Nil)     => LispNil
       case SList(SSymbol("if") :: cond :: thenBranch :: elseBranch :: Nil) =>
         LispIf(transform(cond), transform(thenBranch), transform(elseBranch))
