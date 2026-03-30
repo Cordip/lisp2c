@@ -14,8 +14,8 @@ object Parser:
 
   private def parse(tokens: List[String]): (SExpr, List[String]) =
     tokens match
-      case Nil         => throw new Exception("Empty input")
-      case ")" :: _    => throw new Exception("Unexpected )")
+      case Nil         => throw new Exception("empty input")
+      case ")" :: _    => throw new Exception("unexpected )")
       case "(" :: rest => parseList(Nil, rest)
       case x :: rest =>
         x match
@@ -29,7 +29,7 @@ object Parser:
   @tailrec
   private def parseList(acc: List[SExpr], tokens: List[String]): (SExpr, List[String]) =
     tokens match
-      case Nil         => throw new Exception("Unexpected end of list")
+      case Nil         => throw new Exception("unexpected end of list")
       case ")" :: rest => (SList(acc.reverse), rest)
       case _ =>
         val (expr, remaining) = parse(tokens)

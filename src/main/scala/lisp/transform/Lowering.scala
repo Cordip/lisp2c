@@ -25,18 +25,18 @@ object Lowering:
 
   private def lowerQuote(input: LispExpr): CExpr =
     input match
-      case LispNil => CVar(lispNil)
-      case LispNumber(n) => CCall(makeInt, List(CNumber(n)))
-      case LispBool(true) => CVar(lispTrue)
-      case LispBool(false) => CVar(lispFalse)
-      case LispCons(a, b) => CCall(makeCons, List(lowerQuote(a), lowerQuote(b)))
+      case LispNil          => CVar(lispNil)
+      case LispNumber(n)    => CCall(makeInt, List(CNumber(n)))
+      case LispBool(true)   => CVar(lispTrue)
+      case LispBool(false)  => CVar(lispFalse)
+      case LispCons(a, b)   => CCall(makeCons, List(lowerQuote(a), lowerQuote(b)))
       case LispSymbol(name) => CCall(makeSymbol, List(CStringLit(name)))
-      case _ => throw new Exception(s"unsupported expression $input")
+      case _                => throw new Exception(s"unsupported expression $input")
 
   private def lowerFunc(symbol: String, args: List[LispExpr]): CExpr =
     functions.get(symbol) match
       case Some((func, arity)) if args.length == arity => CCall(func, args.map(lower))
-      case Some(_)                                     => throw new Exception(s"Wrong arity for $symbol")
+      case Some(_)                                     => throw new Exception(s"wrong arity for $symbol")
       case None => throw new Exception(s"unsupported function $symbol with ${args.length} args")
 
   private val functions = Map(
@@ -51,5 +51,5 @@ object Lowering:
     "<" -> (lispLt, 2),
     ">" -> (lispGt, 2),
     "car" -> (lispCar, 1),
-    "cdr" -> (lispCdr, 1),
+    "cdr" -> (lispCdr, 1)
   )
