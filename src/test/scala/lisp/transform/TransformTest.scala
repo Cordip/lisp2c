@@ -126,8 +126,11 @@ class TransformTest extends munit.FunSuite:
     val input = SList(List(SSymbol("*"), SNumber(3), SList(List(SSymbol("+"), SNumber(1), SNumber(2)))))
     assertEquals(
       Transform(input),
-      LispApply(LispSymbol("*"), List(
-        LispNumber(3),
-        LispApply(LispSymbol("+"), List(LispNumber(1), LispNumber(2)))
-      ))
+      LispApply(
+        LispSymbol("*"),
+        List(
+          LispNumber(3),
+          LispApply(LispSymbol("+"), List(LispNumber(1), LispNumber(2)))
+        )
+      )
     )

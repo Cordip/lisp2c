@@ -38,29 +38,38 @@ class LoweringTest extends munit.FunSuite:
   test("quote cons pair"):
     assertEquals(
       Lowering(LispQuote(LispCons(LispNumber(1), LispNumber(2)))),
-      CCall("make_cons", List(
-        CCall("make_int", List(CNumber(1))),
-        CCall("make_int", List(CNumber(2)))
-      ))
+      CCall(
+        "make_cons",
+        List(
+          CCall("make_int", List(CNumber(1))),
+          CCall("make_int", List(CNumber(2)))
+        )
+      )
     )
 
   test("quote list (1 2 3)"):
-    val input = LispQuote(LispCons(
-      LispNumber(1),
-      LispCons(LispNumber(2),
-        LispCons(LispNumber(3), LispNil))))
+    val input = LispQuote(LispCons(LispNumber(1), LispCons(LispNumber(2), LispCons(LispNumber(3), LispNil))))
     assertEquals(
       Lowering(input),
-      CCall("make_cons", List(
-        CCall("make_int", List(CNumber(1))),
-        CCall("make_cons", List(
-          CCall("make_int", List(CNumber(2))),
-          CCall("make_cons", List(
-            CCall("make_int", List(CNumber(3))),
-            CVar("LISP_NIL")
-          ))
-        ))
-      ))
+      CCall(
+        "make_cons",
+        List(
+          CCall("make_int", List(CNumber(1))),
+          CCall(
+            "make_cons",
+            List(
+              CCall("make_int", List(CNumber(2))),
+              CCall(
+                "make_cons",
+                List(
+                  CCall("make_int", List(CNumber(3))),
+                  CVar("LISP_NIL")
+                )
+              )
+            )
+          )
+        )
+      )
     )
 
   test("cons pair"):

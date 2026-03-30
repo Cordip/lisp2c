@@ -34,23 +34,23 @@ object Flatten:
 
   private def flatten(input: CExpr, ctx: FlattenCtx): CExpr =
     input match
-      case n: CNumber => n
-      case v: CVar    => v
+      case n: CNumber    => n
+      case v: CVar       => v
       case s: CStringLit => s
       case CIf(cond, thenBranch, elseBranch) =>
         val condVar = flatten(cond, ctx) match
           case CVar(name) => name
-          case _          => throw new Exception("Flatten: cond must resolve to a var")
+          case _          => throw new Exception("flatten: cond must resolve to a var")
 
         val thenCtx = ctx.nested()
         val thenVar = flatten(thenBranch, thenCtx) match
           case CVar(name) => name
-          case _          => throw new Exception("Flatten: then must resolve to a var")
+          case _          => throw new Exception("flatten: then must resolve to a var")
 
         val elseCtx = ctx.nested()
         val elseVar = flatten(elseBranch, elseCtx) match
           case CVar(name) => name
-          case _          => throw new Exception("Flatten: else must resolve to a var")
+          case _          => throw new Exception("flatten: else must resolve to a var")
 
         val resultVar = ctx.freshVar()
         ctx.emit(
