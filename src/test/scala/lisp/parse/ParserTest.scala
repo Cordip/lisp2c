@@ -64,3 +64,18 @@ class ParserTest extends munit.FunSuite:
   test("parseAll single form"):
     val tokens = Tokenizer("(42)")
     assertEquals(Parser.parseAll(tokens), List(SList(List(SNumber(42)))))
+
+  test("quote shorthand symbol"):
+    val tokens = Tokenizer("'foo")
+    assertEquals(Parser(tokens), SList(List(SSymbol("quote"), SSymbol("foo"))))
+
+  test("quote shorthand list"):
+    val tokens = Tokenizer("'(1 2 3)")
+    assertEquals(
+      Parser(tokens),
+      SList(List(SSymbol("quote"), SList(List(SNumber(1), SNumber(2), SNumber(3)))))
+    )
+
+  test("quote shorthand empty list"):
+    val tokens = Tokenizer("'()")
+    assertEquals(Parser(tokens), SList(List(SSymbol("quote"), SList(List()))))

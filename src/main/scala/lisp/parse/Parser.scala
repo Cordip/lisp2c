@@ -24,6 +24,9 @@ object Parser:
       case Nil         => throw new Exception("empty input")
       case ")" :: _    => throw new Exception("unexpected )")
       case "(" :: rest => parseList(Nil, rest)
+      case "'" :: rest =>
+        val (expr, remaining) = parse(rest)
+        (SList(List(SSymbol("quote"), expr)), remaining)
       case x :: rest =>
         x match
           case "#t" => (SBool(true), rest)
