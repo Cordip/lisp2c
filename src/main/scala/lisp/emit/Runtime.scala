@@ -17,3 +17,7 @@ object Runtime:
   val lispGt = "lisp_gt"
   val lispCar = "lisp_car"
   val lispCdr = "lisp_cdr"
+  val makeEnv = "make_env"
+  val makeClosure = "make_closure"
+  val applyClosure = "apply_closure"
+  val primitives: Set[String] = Set("+", "-", "*", "=", "eq?", "eqv?", "equal?", "<", ">", "car", "cdr", "cons")

@@ -22,6 +22,21 @@ typedef uint64_t LispVal;
 #define LISP_TRUE PACK(TAG_BOOL_T, 0)
 #define LISP_FALSE PACK(TAG_BOOL_F, 0)
 
+// --- Closure and Env types ---
+
+typedef struct Env Env;
+typedef struct ClosureData ClosureData;
+
+struct Env {
+    LispVal *vars;
+    int size;
+};
+
+struct ClosureData {
+    LispVal (*fn)(Env *env, int argc, LispVal *argv);
+    Env *env;
+};
+
 // --- Constructors (inline — no malloc) ---
 
 static inline LispVal make_int(int32_t n) { return PACK(TAG_INT, (uint64_t)(uint32_t)n); }
@@ -113,6 +128,12 @@ static inline LispVal lisp_gt(LispVal a, LispVal b) {
 }
 static inline LispVal lisp_car(LispVal v) { return car(v); }
 static inline LispVal lisp_cdr(LispVal v) { return cdr(v); }
+
+// --- Closure functions (implemented in runtime.c) ---
+
+Env *make_env(int size);
+LispVal make_closure(LispVal (*fn)(Env *, int, LispVal *), Env *env);
+LispVal apply_closure(LispVal closure, int argc, LispVal *argv);
 
 // --- print_val (implemented in runtime.c) ---
 

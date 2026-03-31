@@ -14,12 +14,19 @@ private class FlattenState:
     counter += 1
     name
 
+  def freshEnv(): String =
+    val name = s"env_$counter"
+    counter += 1
+    name
+
 private class FlattenCtx(private val state: FlattenState):
   private val stmts = mutable.ListBuffer[Statement]()
 
   def emit(stmt: Statement): Unit = stmts += stmt
 
   def freshVar(): String = state.freshVar()
+
+  def freshEnv(): String = state.freshEnv()
 
   def nested(): FlattenCtx = FlattenCtx(state)
 
@@ -32,26 +39,42 @@ object Flatten:
     ctx.emit(Return(flatten(input, ctx)))
     ctx.result
 
+  def flattenBody(input: CExpr): List[Statement] = apply(input)
+
+  def flattenTopLevelAll(inputs: List[CExpr]): List[Statement] =
+    val ctx = FlattenCtx(FlattenState())
+    inputs.flatMap(flattenOneTopLevel(_, ctx))
+
+  private def flattenOneTopLevel(input: CExpr, ctx: FlattenCtx): List[Statement] =
+    val before = ctx.result.length
+    input match
+      case CDefineAssign(name, value) =>
+        ctx.emit(Define(name, CVar(flattenToVar(value, ctx))))
+      case other =>
+        ctx.emit(PrintVal(flattenToVar(other, ctx)))
+    ctx.result.drop(before)
+
+  private def flattenToVar(input: CExpr, ctx: FlattenCtx): String =
+    flatten(input, ctx) match
+      case CVar(name) => name
+      case leaf =>
+        val v = ctx.freshVar()
+        ctx.emit(Value(v, leaf))
+        v
+
   private def flatten(input: CExpr, ctx: FlattenCtx): CExpr =
     input match
       case n: CNumber    => n
       case v: CVar       => v
       case s: CStringLit => s
+      case p: CParam     => p
+      case e: CEnvRef    => e
       case CIf(cond, thenBranch, elseBranch) =>
-        val condVar = flatten(cond, ctx) match
-          case CVar(name) => name
-          case _          => throw new Exception("flatten: cond must resolve to a var")
-
+        val condVar = flattenToVar(cond, ctx)
         val thenCtx = ctx.nested()
-        val thenVar = flatten(thenBranch, thenCtx) match
-          case CVar(name) => name
-          case _          => throw new Exception("flatten: then must resolve to a var")
-
+        val thenVar = flattenToVar(thenBranch, thenCtx)
         val elseCtx = ctx.nested()
-        val elseVar = flatten(elseBranch, elseCtx) match
-          case CVar(name) => name
-          case _          => throw new Exception("flatten: else must resolve to a var")
-
+        val elseVar = flattenToVar(elseBranch, elseCtx)
         val resultVar = ctx.freshVar()
         ctx.emit(
           If(
@@ -67,3 +90,33 @@ object Flatten:
         val varName = ctx.freshVar()
         ctx.emit(Value(varName, CCall(name, newArgs)))
         CVar(varName)
+      case CClosure(funcName, envVars) =>
+        if envVars.isEmpty then
+          val varName = ctx.freshVar()
+          ctx.emit(
+            Value(varName, CCall(Runtime.makeClosure, List(CVar(funcName), CCall(Runtime.makeEnv, List(CNumber(0))))))
+          )
+          CVar(varName)
+        else
+          val envName = ctx.freshEnv()
+          ctx.emit(EnvDecl(envName, envVars.length))
+          val flatEnvVars = envVars.map(flattenToVar(_, ctx))
+          flatEnvVars.zipWithIndex.foreach { case (varName, i) => ctx.emit(EnvSet(envName, i, varName)) }
+          val varName = ctx.freshVar()
+          ctx.emit(Value(varName, CCall(Runtime.makeClosure, List(CVar(funcName), CVar(envName)))))
+          CVar(varName)
+      case CApplyClosure(closure, args) =>
+        val closureVar = flattenToVar(closure, ctx)
+        val argVars = args.map(flattenToVar(_, ctx))
+        val resultVar = ctx.freshVar()
+        val argc = CNumber(args.length)
+        val argArray = CArgArray(argVars)
+        ctx.emit(Value(resultVar, CCall(Runtime.applyClosure, List(CVar(closureVar), argc, argArray))))
+        CVar(resultVar)
+      case CDefineAssign(name, value) =>
+        ctx.emit(Define(name, CVar(flattenToVar(value, ctx))))
+        CVar(name)
+      case CLet(namedBindings, body) =>
+        namedBindings.foreach { case (name, bindingExpr) => ctx.emit(Value(name, flatten(bindingExpr, ctx))) }
+        flatten(body, ctx)
+      case CArgArray(_) => input

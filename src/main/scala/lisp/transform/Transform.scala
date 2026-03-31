@@ -22,7 +22,15 @@ object Transform:
       case SList(SSymbol("if") :: _) => throw new Exception("if requires exactly 3 arguments: condition, then, else")
       case SList(SSymbol("quote") :: body :: Nil) => LispQuote(transformQuoted(body))
       case SList(SSymbol("quote") :: _)           => throw new Exception("quote requires exactly 1 argument")
-      case SList(head :: args)                    => LispApply(transform(head), args.map(transform))
+      case SList(SSymbol("define") :: SList(SSymbol(name) :: params) :: body :: Nil) =>
+        LispDefine(name, LispLambda(paramNames(params), transform(body), List()))
+      case SList(SSymbol("define") :: SSymbol(name) :: value :: Nil) => LispDefine(name, transform(value))
+      case SList(SSymbol("lambda") :: SList(params) :: body :: Nil) =>
+        LispLambda(paramNames(params), transform(body), List())
+      case SList(head :: args) => LispApply(transform(head), args.map(transform))
+
+  private def paramNames(params: List[SExpr]): List[String] =
+    params.map { case SSymbol(n) => n; case p => throw new Exception(s"expected param name, got $p") }
 
   private def transformQuoted(input: SExpr): LispExpr =
     input match

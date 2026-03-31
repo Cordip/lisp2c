@@ -134,3 +134,38 @@ class TransformTest extends munit.FunSuite:
         )
       )
     )
+
+  test("define function"):
+    // (define (square x) (* x x))
+    val input = SList(
+      List(
+        SSymbol("define"),
+        SList(List(SSymbol("square"), SSymbol("x"))),
+        SList(List(SSymbol("*"), SSymbol("x"), SSymbol("x")))
+      )
+    )
+    assertEquals(
+      Transform(input),
+      LispDefine(
+        "square",
+        LispLambda(
+          List("x"),
+          LispApply(LispVar("*"), List(LispVar("x"), LispVar("x"))),
+          List()
+        )
+      )
+    )
+
+  test("lambda"):
+    // (lambda (x) x)
+    val input = SList(
+      List(
+        SSymbol("lambda"),
+        SList(List(SSymbol("x"))),
+        SSymbol("x")
+      )
+    )
+    assertEquals(
+      Transform(input),
+      LispLambda(List("x"), LispVar("x"), List())
+    )
