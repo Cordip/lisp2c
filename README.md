@@ -7,6 +7,7 @@ Lisp-to-C compiler on Scala 3.
 - JDK 17+
 - sbt
 - GCC
+- [Boehm GC](https://github.com/ivmai/bdwgc)
 - [just](https://github.com/casey/just)
 
 ## Pipeline

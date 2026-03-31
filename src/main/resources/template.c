@@ -1,4 +1,5 @@
 #include "runtime.h"
+#include <gc.h>
 #include <stdio.h>
 
 LispVal lisp(void) {
@@ -6,6 +7,7 @@ LispVal lisp(void) {
 }
 
 int main(void) {
+  GC_INIT();
   LispVal result = lisp();
   print_val(result);
   printf("\n");
