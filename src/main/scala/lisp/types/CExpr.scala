@@ -10,6 +10,6 @@ enum CExpr:
   case CParam(index: Int)
   case CApplyClosure(closure: CExpr, args: List[CExpr])
   case CDefineAssign(name: String, value: CExpr)
-  case CLet(bindings: List[CExpr], body: CExpr)
+  case CLet(namedBindings: List[(String, CExpr)], body: CExpr)
   case CEnvRef(index: Int)
   case CArgArray(argNames: List[String])

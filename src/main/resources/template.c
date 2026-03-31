@@ -7,5 +7,5 @@
 
 int main(void) {
 {{BODY}}
-    return 0;
+  return 0;
 }

@@ -112,7 +112,10 @@ object Flatten:
         val valueVar = flattenToVar(value, ctx)
         ctx.emit(Define(name, CVar(valueVar)))
         CVar(name)
-      case CLet(bindings, body) =>
-        emitExpr(bindings, ctx)
+      case CLet(namedBindings, body) =>
+        namedBindings.foreach { case (name, bindingExpr) =>
+          val leaf = flatten(bindingExpr, ctx)
+          ctx.emit(Value(name, leaf))
+        }
         flatten(body, ctx)
       case CArgArray(_) => input
