@@ -1,8 +1,5 @@
 # lisp2c justfile
 
-sbt := "sbt --client --error"
-sbt-verbose := "sbt --client"
-
 # Show available commands
 [group('meta')]
 default:
@@ -19,15 +16,26 @@ help:
 help:
     @powershell -File scripts/help.ps1
 
-# Lisp → C → GCC
+# Lisp → C → GCC (file)
 [group('build')]
-build +args:
-    {{sbt}} "run {{args}}"
+build file:
+    scala-cli run . -- {{file}}
     gcc -Ioutput output/output.c output/runtime.c -o output/program
 
-# Build and run
+# Lisp → C → GCC (expression)
+[group('build')]
+build-expr expr:
+    scala-cli run . -- -e "{{expr}}"
+    gcc -Ioutput output/output.c output/runtime.c -o output/program
+
+# Build and run (file)
 [group('run')]
-run +args: (build args)
+run file: (build file)
+    ./output/program
+
+# Build and run (expression)
+[group('run')]
+run-expr expr: (build-expr expr)
     ./output/program
 
 # Run all examples
@@ -43,8 +51,8 @@ run-all:
 
 # Run all tests
 [group('test')]
-test:
-    {{sbt-verbose}} test
+test *args:
+    scala-cli test . {{args}}
 
 # Run C runtime tests (Unity)
 [group('test')]
@@ -55,29 +63,23 @@ test-runtime:
 [group('dev')]
 fmt:
     scalafmt src/
-    clang-format -i src/main/resources/runtime.c src/main/resources/runtime.h
+    clang-format -i src/main/resources/*.c src/main/resources/*.h
 
 # Check formatting and lint
 [group('dev')]
 lint:
     scalafmt --check src/
-    clang-format --dry-run --Werror src/main/resources/runtime.c src/main/resources/runtime.h
-    sbt --no-colors "scalafix --check"
+    clang-format --dry-run --Werror src/main/resources/*.c src/main/resources/*.h
+    scala-cli --power fix . --check --enable-built-in=false --scalafix-arg '--files' --scalafix-arg 'src/'
 
 # Auto-fix lint issues + format
 [group('dev')]
 fix:
-    sbt --no-colors "scalafix"
+    scala-cli --power fix . --enable-built-in=false --scalafix-arg '--files' --scalafix-arg 'src/'
     scalafmt src/
-    clang-format -i src/main/resources/runtime.c src/main/resources/runtime.h
+    clang-format -i src/main/resources/*.c src/main/resources/*.h
 
 # Remove build artifacts
 [group('build')]
 clean:
-    {{sbt}} clean
-    rm -rf output/
-
-# Stop sbt server
-[group('meta')]
-stop:
-    sbt --client shutdown
+    rm -rf .scala-build/ output/
