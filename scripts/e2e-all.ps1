@@ -1,69 +1,88 @@
 $passed = 0
 $failed = 0
-$failures = @()
 
-# Success tests
-foreach ($f in Get-ChildItem examples/basic/*.lisp) {
-    $expected = $f.FullName -replace '\.lisp$', '.expected'
-    $name = $f.BaseName
+function Run-Tests($dir) {
+    foreach ($f in Get-ChildItem "$dir/*.lisp" -ErrorAction SilentlyContinue) {
+        $expected = $f.FullName -replace '\.lisp$', '.expected'
+        $name = $f.BaseName
+        $code = Get-Content $f.FullName -Raw
 
-    just build $f.FullName 2>$null
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "  FAIL $name: build failed"
-        $failures += "  FAIL $name: build failed"
-        $failed++
-        continue
-    }
+        Write-Host "  $name"
+        $code.Split("`n") | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkGray }
 
-    $actual = & ./output/program
-
-    if (Test-Path $expected) {
-        $want = Get-Content $expected -Raw
-        if ($actual.Trim() -eq $want.Trim()) {
-            Write-Host "  PASS $name"
-            $passed++
-        } else {
-            Write-Host "  FAIL $name: expected '$want', got '$actual'"
-            $failures += "  FAIL $name: expected '$want', got '$actual'"
-            $failed++
+        just build $f.FullName 2>$null
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "    FAIL build failed" -ForegroundColor Red
+            Write-Host ""
+            $script:failed++
+            continue
         }
-    } else {
-        Write-Host "  SKIP $name (no .expected file)"
+
+        $actual = & ./output/program
+
+        if (Test-Path $expected) {
+            $want = (Get-Content $expected -Raw).Trim()
+            if ($actual.Trim() -eq $want) {
+                Write-Host "    PASS $actual" -ForegroundColor Green
+            } else {
+                Write-Host "    FAIL got '$actual', expected '$want'" -ForegroundColor Red
+                $script:failed++
+                continue
+            }
+        } else {
+            Write-Host "    $actual"
+        }
+
+        Write-Host ""
+        $script:passed++
     }
 }
 
-# Error tests
-foreach ($f in Get-ChildItem examples/errors/*.lisp -ErrorAction SilentlyContinue) {
-    $expected = $f.FullName -replace '\.lisp$', '.expected'
-    $name = $f.BaseName
+function Run-ErrorTests($dir) {
+    foreach ($f in Get-ChildItem "$dir/*.lisp" -ErrorAction SilentlyContinue) {
+        $expected = $f.FullName -replace '\.lisp$', '.expected'
+        $name = $f.BaseName
 
-    $stderr = just build $f.FullName 2>&1
-    if ($LASTEXITCODE -eq 0) {
-        Write-Host "  FAIL $name: expected error but build succeeded"
-        $failures += "  FAIL $name: expected error but build succeeded"
-        $failed++
-        continue
-    }
+        Write-Host "  $name"
+        (Get-Content $f.FullName -Raw).Split("`n") | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkGray }
 
-    if (Test-Path $expected) {
-        $want = Get-Content $expected -Raw
-        if ($stderr -match [regex]::Escape($want.Trim())) {
-            Write-Host "  PASS $name (error)"
-            $passed++
-        } else {
-            Write-Host "  FAIL $name: expected error '$want'"
-            $failures += "  FAIL $name: expected error '$want'"
-            $failed++
+        $stderr = just build $f.FullName 2>&1
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "    FAIL expected error but succeeded" -ForegroundColor Red
+            Write-Host ""
+            $script:failed++
+            continue
         }
-    } else {
-        Write-Host "  SKIP $name (no .expected file)"
+
+        if (Test-Path $expected) {
+            $want = (Get-Content $expected -Raw).Trim()
+            if ($stderr -match [regex]::Escape($want)) {
+                Write-Host "    PASS error" -ForegroundColor Green
+            } else {
+                Write-Host "    FAIL wrong error message" -ForegroundColor Red
+                $script:failed++
+                continue
+            }
+        } else {
+            Write-Host "    PASS error" -ForegroundColor Green
+        }
+
+        Write-Host ""
+        $script:passed++
     }
 }
 
+Write-Host "=== Basic ==="
 Write-Host ""
+Run-Tests "examples/basic"
+
+Write-Host "=== Programs ==="
+Write-Host ""
+Run-Tests "examples/programs"
+
+Write-Host "=== Errors ==="
+Write-Host ""
+Run-ErrorTests "examples/errors"
+
 Write-Host "$passed passed, $failed failed"
-if ($failed -gt 0) {
-    Write-Host "`nFailures:"
-    $failures | ForEach-Object { Write-Host $_ }
-    exit 1
-}
+if ($failed -gt 0) { exit 1 }
