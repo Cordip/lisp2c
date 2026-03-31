@@ -1,8 +1,8 @@
 package lisp.transform
 
-import lisp.types.LispExpr
-import lisp.types.LispExpr.*
 import lisp.emit.Runtime
+import lisp.types.LispExpr
+import lisp.types.LispExpr._
 
 object FreeVarAnalysis:
 
@@ -13,9 +13,7 @@ object FreeVarAnalysis:
       case LispLambda(params, body, _) =>
         val newBound = bound ++ params
         val newBody = analyze(body, newBound)
-        val free = collectFree(newBody, params.toSet)
-          .filterNot(Runtime.primitives.contains)
-          .filterNot(bound.contains)
+        val free = collectFree(newBody, params.toSet).diff(Runtime.primitives).diff(bound)
         LispLambda(params, newBody, free.toList.sorted)
       case LispDefine(name, value) =>
         val newBound = bound + name
@@ -32,14 +30,10 @@ object FreeVarAnalysis:
   private def collectFree(expr: LispExpr, bound: Set[String]): Set[String] =
     expr match
       case LispVar(name) => if bound.contains(name) then Set() else Set(name)
-      case LispLambda(params, body, _) =>
-        collectFree(body, bound ++ params)
-      case LispApply(fn, args) =>
-        collectFree(fn, bound) ++ args.flatMap(collectFree(_, bound))
-      case LispIf(c, t, e) =>
-        collectFree(c, bound) ++ collectFree(t, bound) ++ collectFree(e, bound)
-      case LispDefine(name, value) =>
-        collectFree(value, bound + name)
+      case LispLambda(params, body, _) => collectFree(body, bound ++ params)
+      case LispApply(fn, args) => collectFree(fn, bound) ++ args.flatMap(collectFree(_, bound))
+      case LispIf(c, t, e) => collectFree(c, bound) ++ collectFree(t, bound) ++ collectFree(e, bound)
+      case LispDefine(name, value) => collectFree(value, bound + name)
       case LispLet(bindings, body) =>
         val bindingFree = bindings.flatMap((_, v) => collectFree(v, bound))
         val newBound = bound ++ bindings.map(_._1)

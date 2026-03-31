@@ -21,5 +21,4 @@ object Runtime:
   val makeEnv = "make_env"
   val makeClosure = "make_closure"
   val applyClosure = "apply_closure"
-
   val primitives: Set[String] = Set("+", "-", "*", "=", "eq?", "eqv?", "equal?", "<", ">", "car", "cdr", "cons")

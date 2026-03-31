@@ -200,7 +200,7 @@ class LoweringTest extends munit.FunSuite:
 
   test("define simple function"):
     val input = LispDefine("id", LispLambda(List("x"), LispVar("x"), List()))
-    val (functions, globals, stmts) = Lowering.lowerProgram(List(input))
+    val (functions, globals, _) = Lowering.lowerProgram(List(input))
     assertEquals(globals.length, 1)
     assertEquals(globals.head.name, "id")
     assertEquals(functions.length, 1)

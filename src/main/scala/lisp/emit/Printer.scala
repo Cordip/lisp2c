@@ -1,7 +1,7 @@
 package lisp.emit
 
 import lisp.types.Line
-import lisp.types.Line.*
+import lisp.types.Line._
 
 object Printer:
 
@@ -9,7 +9,6 @@ object Printer:
     lines.flatMap(render(_, indent)).mkString("\n")
 
   private def render(line: Line, indent: Int): List[String] =
-    val pad = "  " * indent
     line match
-      case Text(value)  => List(s"$pad$value")
+      case Text(value) => List(s"${"  " * indent}$value")
       case Block(lines) => lines.flatMap(render(_, indent + 1))
