@@ -5,3 +5,7 @@ enum Statement:
   case Value(name: String, expr: CExpr)
   case Assign(target: String, source: String)
   case If(cond: String, thenBranch: List[Statement], elseBranch: List[Statement], resultVar: String)
+  case Define(name: String, value: CExpr)
+  case EnvDecl(name: String, size: Int)
+  case EnvSet(envName: String, index: Int, valueName: String)
+  case PrintVal(varName: String)
