@@ -2,6 +2,13 @@
 
 Lisp-to-C compiler on Scala 3.
 
+## Prerequisites
+
+- JDK 11+
+- sbt
+- GCC
+- [just](https://github.com/casey/just)
+
 ## Pipeline
 
 ```
