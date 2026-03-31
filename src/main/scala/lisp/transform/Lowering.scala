@@ -35,16 +35,33 @@ object Lowering:
       case _                => throw new Exception(s"lowerQuote: unsupported expression: $input")
 
   private def lowerFunc(symbol: String, args: List[LispExpr]): CExpr =
-    functions.get(symbol) match
-      case Some((func, arity)) if args.length == arity => CCall(func, args.map(lower))
-      case Some(_)                                     => throw new Exception(s"wrong arity for $symbol")
-      case None => throw new Exception(s"unsupported function $symbol with ${args.length} args")
+    variadic.get(symbol) match
+      case Some(func) => lowerVariadic(func, symbol, args)
+      case None =>
+        functions.get(symbol) match
+          case Some((func, arity)) if args.length == arity => CCall(func, args.map(lower))
+          case Some(_)                                     => throw new Exception(s"wrong arity for $symbol")
+          case None => throw new Exception(s"unsupported function $symbol with ${args.length} args")
+
+  private def lowerVariadic(func: String, symbol: String, args: List[LispExpr]): CExpr =
+    args match
+      case Nil => throw new Exception(s"$symbol requires at least 1 argument")
+      case a :: Nil =>
+        if symbol == "-" then CCall(lispSub, List(CCall(makeInt, List(CNumber(0))), lower(a)))
+        else throw new Exception(s"$symbol requires at least 2 arguments")
+      case a :: b :: rest =>
+        rest.foldLeft(CCall(func, List(lower(a), lower(b)))) { (acc, arg) =>
+          CCall(func, List(acc, lower(arg)))
+        }
+
+  private val variadic = Map(
+    "+" -> lispAdd,
+    "-" -> lispSub,
+    "*" -> lispMul
+  )
 
   private val functions = Map(
     "cons" -> (makeCons, 2),
-    "+" -> (lispAdd, 2),
-    "-" -> (lispSub, 2),
-    "*" -> (lispMul, 2),
     "=" -> (lispEqv, 2),
     "eq?" -> (lispEq, 2),
     "eqv?" -> (lispEqv, 2),
