@@ -22,3 +22,9 @@ class TokenizerTest extends munit.FunSuite:
 
   test("quote expression"):
     assertEquals(Tokenizer("(quote foo)"), List("(", "quote", "foo", ")"))
+
+  test("quote shorthand"):
+    assertEquals(Tokenizer("'foo"), List("'", "foo"))
+
+  test("quote shorthand list"):
+    assertEquals(Tokenizer("'(1 2 3)"), List("'", "(", "1", "2", "3", ")"))
