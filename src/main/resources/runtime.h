@@ -1,6 +1,7 @@
 #pragma once
 
 #include "tags.h"
+#include <gc.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,25 +27,17 @@ typedef uint64_t LispVal;
 
 static inline LispVal make_int(int32_t n) { return PACK(TAG_INT, (uint64_t)(uint32_t)n); }
 
-// --- Constructors (heap — malloc) ---
+// --- Constructors (heap — GC) ---
 
 static inline LispVal make_cons(LispVal head, LispVal tail) {
-  LispVal *cell = malloc(2 * sizeof(LispVal));
-  if (!cell) {
-    fprintf(stderr, "out of memory\n");
-    exit(1);
-  }
+  LispVal *cell = GC_malloc(2 * sizeof(LispVal));
   cell[0] = head;
   cell[1] = tail;
   return PACK(TAG_CONS, (uint64_t)(uintptr_t)cell);
 }
 
 static inline LispVal make_symbol(const char *name) {
-  char *copy = strdup(name);
-  if (!copy) {
-    fprintf(stderr, "out of memory\n");
-    exit(1);
-  }
+  char *copy = GC_strdup(name);
   return PACK(TAG_SYMBOL, (uint64_t)(uintptr_t)copy);
 }
 

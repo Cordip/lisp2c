@@ -23,7 +23,7 @@ help:
 [group('build')]
 build +args:
     {{sbt}} "run {{args}}"
-    gcc -Ioutput output/output.c output/runtime.c -o output/program
+    gcc -Ioutput output/output.c output/runtime.c -lgc -o output/program
 
 # Build and run
 [group('run')]
@@ -49,7 +49,7 @@ test:
 # Run C runtime tests (Unity)
 [group('test')]
 test-runtime:
-    gcc -Isrc/main/resources -Itest test/test_runtime.c test/unity.c src/main/resources/runtime.c -o test/test_runtime && ./test/test_runtime
+    gcc -Isrc/main/resources -Itest test/test_runtime.c test/unity.c src/main/resources/runtime.c -lgc -o test/test_runtime && ./test/test_runtime
 
 # Format all code
 [group('dev')]

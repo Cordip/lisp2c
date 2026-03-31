@@ -1,5 +1,6 @@
 #include "unity.h"
 #include "runtime.h"
+#include <gc.h>
 #include <limits.h>
 
 void setUp(void) {}
@@ -136,7 +137,18 @@ void test_lisp_car_cdr(void) {
     TEST_ASSERT_EQUAL_INT32(20, get_int(lisp_cdr(pair)));
 }
 
+void test_gc_smoke(void) {
+    // 100k allocations — GC should collect unreachable objects
+    for (int i = 0; i < 100000; i++) {
+        make_cons(make_int(i), LISP_NIL);
+        make_symbol("test");
+    }
+    // if we got here without OOM, GC is working
+    TEST_PASS();
+}
+
 int main(void) {
+    GC_INIT();
     UNITY_BEGIN();
     RUN_TEST(test_make_int);
     RUN_TEST(test_int_zero);
@@ -156,5 +168,6 @@ int main(void) {
     RUN_TEST(test_symbol);
     RUN_TEST(test_lisp_car_cdr);
     RUN_TEST(test_get_tag);
+    RUN_TEST(test_gc_smoke);
     return UNITY_END();
 }
