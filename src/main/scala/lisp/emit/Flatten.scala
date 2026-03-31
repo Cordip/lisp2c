@@ -1,7 +1,7 @@
 package lisp.emit
 
-import lisp.types.CExpr._
-import lisp.types.Statement._
+import lisp.types.CExpr.*
+import lisp.types.Statement.*
 import lisp.types.{CExpr, Statement}
 
 import scala.collection.mutable

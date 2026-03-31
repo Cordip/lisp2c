@@ -40,7 +40,6 @@ struct ClosureData {
 // --- Constructors (inline — no malloc) ---
 
 static inline LispVal make_int(int32_t n) { return PACK(TAG_INT, (uint64_t)(uint32_t)n); }
-static inline LispVal make_bool(int v) { return v ? LISP_TRUE : LISP_FALSE; }
 
 // --- Constructors (heap — malloc) ---
 

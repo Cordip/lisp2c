@@ -12,5 +12,6 @@ object Tokenizer:
       case Nil                         => prefix
       case '(' :: rest                 => prefix ++ List("(") ++ apply(rest.mkString)
       case ')' :: rest                 => prefix ++ List(")") ++ apply(rest.mkString)
+      case '\'' :: rest                => prefix ++ List("'") ++ apply(rest.mkString)
       case c :: rest if c.isWhitespace => prefix ++ apply(rest.mkString)
       case c :: rest                   => apply(rest.mkString, current + c)

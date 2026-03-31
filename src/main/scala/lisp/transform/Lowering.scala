@@ -1,8 +1,8 @@
 package lisp.transform
 
-import lisp.emit.Runtime._
-import lisp.types.CExpr._
-import lisp.types.LispExpr._
+import lisp.emit.Runtime.*
+import lisp.types.CExpr.*
+import lisp.types.LispExpr.*
 import lisp.types.{CExpr, CFunction, GlobalDecl, LispExpr}
 
 import scala.collection.mutable.ListBuffer
