@@ -2,7 +2,7 @@ package lisp.transform
 
 import lisp.emit.Runtime
 import lisp.types.LispExpr
-import lisp.types.LispExpr.*
+import lisp.types.LispExpr._
 
 object FreeVarAnalysis:
 

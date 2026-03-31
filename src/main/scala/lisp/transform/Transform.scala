@@ -1,7 +1,7 @@
 package lisp.transform
 
-import lisp.types.LispExpr.*
-import lisp.types.SExpr.*
+import lisp.types.LispExpr._
+import lisp.types.SExpr._
 import lisp.types.{LispExpr, SExpr}
 
 object Transform:

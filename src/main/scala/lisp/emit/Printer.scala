@@ -1,7 +1,7 @@
 package lisp.emit
 
 import lisp.types.Line
-import lisp.types.Line.*
+import lisp.types.Line._
 
 object Printer:
 

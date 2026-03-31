@@ -1,9 +1,9 @@
 package lisp.emit
 
-import lisp.types.*
-import lisp.types.CExpr.*
-import lisp.types.Line.*
-import lisp.types.Statement.*
+import lisp.types.CExpr._
+import lisp.types.Line._
+import lisp.types.Statement._
+import lisp.types._
 
 object CodeGen:
 
