@@ -1,7 +1,7 @@
 package lisp.emit
 
 import lisp.types.Line
-import lisp.types.Line._
+import lisp.types.Line.*
 
 object Printer:
 
@@ -10,5 +10,5 @@ object Printer:
 
   private def render(line: Line, indent: Int): List[String] =
     line match
-      case Text(value) => List(s"${"  " * indent}$value")
+      case Text(value)  => List(s"${"  " * indent}$value")
       case Block(lines) => lines.flatMap(render(_, indent + 1))

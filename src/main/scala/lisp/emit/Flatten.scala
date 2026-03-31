@@ -1,7 +1,7 @@
 package lisp.emit
 
-import lisp.types.CExpr._
-import lisp.types.Statement._
+import lisp.types.CExpr.*
+import lisp.types.Statement.*
 import lisp.types.{CExpr, Statement}
 
 import scala.collection.mutable
@@ -62,20 +62,13 @@ object Flatten:
         ctx.emit(Value(v, leaf))
         v
 
-  def emitExpr(envVars: List[CExpr], ctx: FlattenCtx): String =
-    val envName = ctx.freshEnv()
-    ctx.emit(EnvDecl(envName, envVars.length))
-    val flatEnvVars = envVars.map(flattenToVar(_, ctx))
-    flatEnvVars.zipWithIndex.foreach { case (varName, i) => ctx.emit(EnvSet(envName, i, varName)) }
-    envName
-
   private def flatten(input: CExpr, ctx: FlattenCtx): CExpr =
     input match
-      case n: CNumber => n
-      case v: CVar => v
+      case n: CNumber    => n
+      case v: CVar       => v
       case s: CStringLit => s
-      case p: CParam => p
-      case e: CEnvRef => e
+      case p: CParam     => p
+      case e: CEnvRef    => e
       case CIf(cond, thenBranch, elseBranch) =>
         val condVar = flattenToVar(cond, ctx)
         val thenCtx = ctx.nested()
@@ -83,7 +76,14 @@ object Flatten:
         val elseCtx = ctx.nested()
         val elseVar = flattenToVar(elseBranch, elseCtx)
         val resultVar = ctx.freshVar()
-        ctx.emit(If(condVar, thenCtx.result :+ Assign(resultVar, thenVar), elseCtx.result :+ Assign(resultVar, elseVar), resultVar))
+        ctx.emit(
+          If(
+            condVar,
+            thenCtx.result :+ Assign(resultVar, thenVar),
+            elseCtx.result :+ Assign(resultVar, elseVar),
+            resultVar
+          )
+        )
         CVar(resultVar)
       case CCall(name, args) =>
         val newArgs = args.map(flatten(_, ctx))
@@ -93,10 +93,15 @@ object Flatten:
       case CClosure(funcName, envVars) =>
         if envVars.isEmpty then
           val varName = ctx.freshVar()
-          ctx.emit(Value(varName, CCall(Runtime.makeClosure, List(CVar(funcName), CCall(Runtime.makeEnv, List(CNumber(0)))))))
+          ctx.emit(
+            Value(varName, CCall(Runtime.makeClosure, List(CVar(funcName), CCall(Runtime.makeEnv, List(CNumber(0))))))
+          )
           CVar(varName)
         else
-          val envName = emitExpr(envVars, ctx)
+          val envName = ctx.freshEnv()
+          ctx.emit(EnvDecl(envName, envVars.length))
+          val flatEnvVars = envVars.map(flattenToVar(_, ctx))
+          flatEnvVars.zipWithIndex.foreach { case (varName, i) => ctx.emit(EnvSet(envName, i, varName)) }
           val varName = ctx.freshVar()
           ctx.emit(Value(varName, CCall(Runtime.makeClosure, List(CVar(funcName), CVar(envName)))))
           CVar(varName)
@@ -109,13 +114,9 @@ object Flatten:
         ctx.emit(Value(resultVar, CCall(Runtime.applyClosure, List(CVar(closureVar), argc, argArray))))
         CVar(resultVar)
       case CDefineAssign(name, value) =>
-        val valueVar = flattenToVar(value, ctx)
-        ctx.emit(Define(name, CVar(valueVar)))
+        ctx.emit(Define(name, CVar(flattenToVar(value, ctx))))
         CVar(name)
       case CLet(namedBindings, body) =>
-        namedBindings.foreach { case (name, bindingExpr) =>
-          val leaf = flatten(bindingExpr, ctx)
-          ctx.emit(Value(name, leaf))
-        }
+        namedBindings.foreach { case (name, bindingExpr) => ctx.emit(Value(name, flatten(bindingExpr, ctx))) }
         flatten(body, ctx)
       case CArgArray(_) => input

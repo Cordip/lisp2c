@@ -5,11 +5,14 @@ import lisp.types.LispExpr.*
 class FreeVarAnalysisTest extends munit.FunSuite:
 
   test("lambda with no free vars"):
-    val input = LispDefine("square", LispLambda(
-      List("x"),
-      LispApply(LispVar("*"), List(LispVar("x"), LispVar("x"))),
-      List()
-    ))
+    val input = LispDefine(
+      "square",
+      LispLambda(
+        List("x"),
+        LispApply(LispVar("*"), List(LispVar("x"), LispVar("x"))),
+        List()
+      )
+    )
     val result = FreeVarAnalysis(input)
     val LispDefine(_, LispLambda(_, _, freeVars)) = result: @unchecked
     assertEquals(freeVars, List())

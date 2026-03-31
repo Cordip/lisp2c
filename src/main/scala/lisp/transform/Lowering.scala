@@ -1,8 +1,8 @@
 package lisp.transform
 
-import lisp.emit.Runtime._
-import lisp.types.CExpr._
-import lisp.types.LispExpr._
+import lisp.emit.Runtime.*
+import lisp.types.CExpr.*
+import lisp.types.LispExpr.*
 import lisp.types.{CExpr, CFunction, GlobalDecl, LispExpr}
 
 import scala.collection.mutable.ListBuffer
@@ -16,6 +16,7 @@ object Lowering:
     letVars: Map[String, String] = Map(),
     parent: Option[Scope] = None
   ):
+
     def resolve(name: String): CExpr =
       if letVars.contains(name) then CVar(letVars(name))
       else
@@ -28,7 +29,7 @@ object Lowering:
           else
             parent match
               case Some(p) => p.resolve(name)
-              case None => throw new Exception(s"unresolved variable: $name")
+              case None    => throw new Exception(s"unresolved variable: $name")
 
   private val primitiveMap: Map[String, (String, Int)] = Map(
     "cons" -> (makeCons, 2),
@@ -56,8 +57,7 @@ object Lowering:
       n
 
   def apply(input: LispExpr): CExpr =
-    val state = new LoweringState()
-    lowerExpr(input, Scope(), state)
+    lowerExpr(input, Scope(), new LoweringState())
 
   def lowerProgram(exprs: List[LispExpr]): (List[CFunction], List[GlobalDecl], List[CExpr]) =
     val state = new LoweringState()
@@ -70,8 +70,7 @@ object Lowering:
     expr match
       case LispDefine(name, value) =>
         state.globalDecls += GlobalDecl(name)
-        val cValue = lowerExprWithName(value, name, scope, state)
-        List(CDefineAssign(name, cValue))
+        List(CDefineAssign(name, lowerExprWithName(value, name, scope, state)))
       case other =>
         List(lowerExpr(other, scope, state))
 
@@ -82,20 +81,18 @@ object Lowering:
         val innerScope = Scope(params = params, envVars = freeVars, globals = scope.globals)
         val bodyExpr = lowerExpr(body, innerScope, state)
         state.functions += CFunction(funcName, params, bodyExpr)
-        val envVarExprs = freeVars.map(n => scope.resolve(n))
-        CClosure(funcName, envVarExprs)
+        CClosure(funcName, freeVars.map(n => scope.resolve(n)))
       case other => lowerExpr(other, scope, state)
 
   private def lowerExpr(expr: LispExpr, scope: Scope, state: LoweringState): CExpr =
     expr match
-      case LispNumber(n) => CCall(makeInt, List(CNumber(n)))
-      case LispNil => CVar(lispNil)
-      case LispBool(true) => CVar(lispTrue)
-      case LispBool(false) => CVar(lispFalse)
-      case LispCons(car, cdr) =>
-        CCall(makeCons, List(lowerExpr(car, scope, state), lowerExpr(cdr, scope, state)))
-      case LispSymbol(name) => CCall(makeSymbol, List(CStringLit(name)))
-      case LispQuote(body) => lowerQuote(body)
+      case LispNumber(n)      => CCall(makeInt, List(CNumber(n)))
+      case LispNil            => CVar(lispNil)
+      case LispBool(true)     => CVar(lispTrue)
+      case LispBool(false)    => CVar(lispFalse)
+      case LispCons(car, cdr) => CCall(makeCons, List(lowerExpr(car, scope, state), lowerExpr(cdr, scope, state)))
+      case LispSymbol(name)   => throw new Exception(s"unresolved variable: $name")
+      case LispQuote(body)    => lowerQuote(body)
       case LispIf(cond, thenBranch, elseBranch) =>
         CIf(lowerExpr(cond, scope, state), lowerExpr(thenBranch, scope, state), lowerExpr(elseBranch, scope, state))
       case LispVar(name) if primitiveMap.contains(name) =>
@@ -113,14 +110,12 @@ object Lowering:
         CApplyClosure(lowerExpr(fn, scope, state), args.map(lowerExpr(_, scope, state)))
       case LispLet(bindings, body) =>
         val namedBindings = bindings.map { case (name, v) =>
-          val cName = s"_let${state.fresh()}_$name"
-          (cName, lowerExpr(v, scope, state))
+          (s"_let${state.fresh()}_$name", lowerExpr(v, scope, state))
         }
         val letVarMapping = bindings.map(_._1).zip(namedBindings.map(_._1)).toMap
         val innerScope = scope.copy(letVars = scope.letVars ++ letVarMapping)
-        val bodyExpr = lowerExpr(body, innerScope, state)
-        CLet(namedBindings, bodyExpr)
-      case _ => throw new Exception(s"Lowering: unsupported: $expr")
+        CLet(namedBindings, lowerExpr(body, innerScope, state))
+      case _ => throw new Exception(s"unsupported: $expr")
 
   private def lowerLambda(
     funcName: String,
@@ -136,14 +131,14 @@ object Lowering:
 
   private def isLiteral(expr: LispExpr): Boolean = expr match
     case _: LispNumber | _: LispBool | LispNil | _: LispCons | _: LispSymbol => true
-    case _ => false
+    case _                                                                   => false
 
   private def lowerQuote(input: LispExpr): CExpr =
     input match
-      case LispNil => CVar(lispNil)
-      case LispNumber(n) => CCall(makeInt, List(CNumber(n)))
-      case LispBool(true) => CVar(lispTrue)
-      case LispBool(false) => CVar(lispFalse)
-      case LispCons(a, b) => CCall(makeCons, List(lowerQuote(a), lowerQuote(b)))
+      case LispNil          => CVar(lispNil)
+      case LispNumber(n)    => CCall(makeInt, List(CNumber(n)))
+      case LispBool(true)   => CVar(lispTrue)
+      case LispBool(false)  => CVar(lispFalse)
+      case LispCons(a, b)   => CCall(makeCons, List(lowerQuote(a), lowerQuote(b)))
       case LispSymbol(name) => CCall(makeSymbol, List(CStringLit(name)))
-      case _ => throw new Exception(s"unsupported expression: $input")
+      case _                => throw new Exception(s"unresolved expression: $input")
