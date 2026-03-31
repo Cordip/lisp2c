@@ -9,11 +9,13 @@ import scala.util.Using
     println("Usage: lisp2c <file.lisp | -e expression>")
     sys.exit(1)
   val argList = args.toList
-  val lispCode = argList match
-    case "-e" :: rest if rest.nonEmpty =>
-      rest.mkString(" ").trim
-    case _ =>
-      val path = argList.mkString(" ").trim
+  val lispCode = argList.head match
+    case "-e" =>
+      if argList.length != 2 then
+        println("Usage: lisp2c -e <expression>")
+        sys.exit(1)
+      argList(1)
+    case path =>
       val file = File(path)
       if !file.exists() then
         println(s"File not found: $path")

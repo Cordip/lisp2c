@@ -5,7 +5,7 @@ Lisp-to-C compiler on Scala 3.
 ## Prerequisites
 
 - JDK 17+
-- sbt
+- scala-cli
 - GCC
 - [just](https://github.com/casey/just)
 
@@ -34,12 +34,12 @@ CCall("lisp_add", ...)                  — C expression tree
 ## Usage
 
 ```bash
-just help              # show all commands
-just run file.lisp     # compile and run from file
-just run -e "(+ 1 2)"  # compile and run expression
-just run -e 42         # bare expression
-just run-all           # run all examples
-just test              # run tests
+just help                 # examples
+just run file.lisp        # compile and run from file
+just run-expr "(+ 1 2)"   # compile and run expression
+just run-expr 42          # bare expression
+just run-all              # run all examples
+just test                 # run tests
 ```
 
 Output is written to `output/` directory and compiled with GCC automatically.

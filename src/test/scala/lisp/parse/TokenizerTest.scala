@@ -40,3 +40,9 @@ class TokenizerTest extends munit.FunSuite:
 
   test("trailing newline"):
     assertEquals(Tokenizer("(+ 1 2)\n"), List("(", "+", "1", "2", ")"))
+
+  test("multiline"):
+    assertEquals(
+      Tokenizer("(+ 1\n   2\n   3)"),
+      List("(", "+", "1", "2", "3", ")")
+    )
