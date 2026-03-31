@@ -186,6 +186,48 @@ class LoweringTest extends munit.FunSuite:
       CCall("lisp_gt", List(CCall("make_int", List(CNumber(1))), CCall("make_int", List(CNumber(2)))))
     )
 
+  test("variadic + three args"):
+    val mk = (n: Int) => CCall("make_int", List(CNumber(n)))
+    assertEquals(
+      Lowering(LispApply(LispVar("+"), List(LispNumber(1), LispNumber(2), LispNumber(3)))),
+      CCall("lisp_add", List(CCall("lisp_add", List(mk(1), mk(2))), mk(3)))
+    )
+
+  test("variadic * four args"):
+    val mk = (n: Int) => CCall("make_int", List(CNumber(n)))
+    assertEquals(
+      Lowering(LispApply(LispVar("*"), List(LispNumber(2), LispNumber(3), LispNumber(4), LispNumber(5)))),
+      CCall("lisp_mul", List(CCall("lisp_mul", List(CCall("lisp_mul", List(mk(2), mk(3))), mk(4))), mk(5)))
+    )
+
+  test("unary minus"):
+    assertEquals(
+      Lowering(LispApply(LispVar("-"), List(LispNumber(5)))),
+      CCall("lisp_sub", List(CCall("make_int", List(CNumber(0))), CCall("make_int", List(CNumber(5)))))
+    )
+
+  test("variadic - three args"):
+    val mk = (n: Int) => CCall("make_int", List(CNumber(n)))
+    assertEquals(
+      Lowering(LispApply(LispVar("-"), List(LispNumber(10), LispNumber(3), LispNumber(2)))),
+      CCall("lisp_sub", List(CCall("lisp_sub", List(mk(10), mk(3))), mk(2)))
+    )
+
+  test("unary + throws"):
+    intercept[Exception] {
+      Lowering(LispApply(LispVar("+"), List(LispNumber(1))))
+    }
+
+  test("unary * throws"):
+    intercept[Exception] {
+      Lowering(LispApply(LispVar("*"), List(LispNumber(2))))
+    }
+
+  test("zero-arg + throws"):
+    intercept[Exception] {
+      Lowering(LispApply(LispVar("+"), Nil))
+    }
+
   test("car"):
     assertEquals(
       Lowering(LispApply(LispVar("car"), List(LispNil))),
