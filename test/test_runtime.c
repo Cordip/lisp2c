@@ -130,6 +130,34 @@ void test_symbol(void) {
     TEST_ASSERT_EQUAL_STRING("foo", get_symbol(s));
 }
 
+void test_symbol_interning(void) {
+    LispVal a = make_symbol("foo");
+    LispVal b = make_symbol("foo");
+    LispVal c = make_symbol("bar");
+    // same name → same pointer → eq? is true
+    TEST_ASSERT_EQUAL_UINT64(a, b);
+    TEST_ASSERT_NOT_EQUAL(a, c);
+    // eq? works on interned symbols
+    TEST_ASSERT_TRUE(is_truthy(lisp_eq(a, b)));
+    TEST_ASSERT_FALSE(is_truthy(lisp_eq(a, c)));
+}
+
+void test_intern_growth(void) {
+    char buf[16];
+    // create 100 unique symbols — forces table growth past initial capacity (64)
+    for (int i = 0; i < 100; i++) {
+        snprintf(buf, sizeof(buf), "sym%d", i);
+        make_symbol(buf);
+    }
+    // verify all are still found
+    for (int i = 0; i < 100; i++) {
+        snprintf(buf, sizeof(buf), "sym%d", i);
+        LispVal a = make_symbol(buf);
+        LispVal b = make_symbol(buf);
+        TEST_ASSERT_EQUAL_UINT64(a, b);
+    }
+}
+
 void test_lisp_car_cdr(void) {
     LispVal pair = make_cons(make_int(10), make_int(20));
     TEST_ASSERT_EQUAL_INT32(10, get_int(lisp_car(pair)));
@@ -156,5 +184,7 @@ int main(void) {
     RUN_TEST(test_symbol);
     RUN_TEST(test_lisp_car_cdr);
     RUN_TEST(test_get_tag);
+    RUN_TEST(test_symbol_interning);
+    RUN_TEST(test_intern_growth);
     return UNITY_END();
 }

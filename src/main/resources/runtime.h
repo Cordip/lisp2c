@@ -1,5 +1,6 @@
 #pragma once
 
+#include "intern.h"
 #include "tags.h"
 #include <stdint.h>
 #include <stdio.h>
@@ -40,12 +41,8 @@ static inline LispVal make_cons(LispVal head, LispVal tail) {
 }
 
 static inline LispVal make_symbol(const char *name) {
-  char *copy = strdup(name);
-  if (!copy) {
-    fprintf(stderr, "out of memory\n");
-    exit(1);
-  }
-  return PACK(TAG_SYMBOL, (uint64_t)(uintptr_t)copy);
+  const char *interned = intern_symbol(name);
+  return PACK(TAG_SYMBOL, (uint64_t)(uintptr_t)interned);
 }
 
 // --- Accessors ---
