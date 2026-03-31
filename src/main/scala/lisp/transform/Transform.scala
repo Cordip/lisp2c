@@ -22,6 +22,13 @@ object Transform:
       case SList(SSymbol("if") :: _) => throw new Exception("if requires exactly 3 arguments: condition, then, else")
       case SList(SSymbol("quote") :: body :: Nil) => LispQuote(transformQuoted(body))
       case SList(SSymbol("quote") :: _)           => throw new Exception("quote requires exactly 1 argument")
+      case SList(SSymbol("let") :: SList(bindings) :: body :: Nil) =>
+        val transformedBindings = bindings.map {
+          case SList(SSymbol(name) :: value :: Nil) => (name, transform(value))
+          case _                                    => throw new Exception("let binding must be pair (name value)")
+        }
+        LispLet(transformedBindings, transform(body))
+      case SList(SSymbol("let") :: _) => throw new Exception("let requires exactly 2 arguments: bindings and body")
       case SList(SSymbol("define") :: SList(SSymbol(name) :: params) :: body :: Nil) =>
         LispDefine(name, LispLambda(paramNames(params), transform(body), List()))
       case SList(SSymbol("define") :: SSymbol(name) :: value :: Nil) => LispDefine(name, transform(value))
