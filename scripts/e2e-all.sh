@@ -1,69 +1,102 @@
 #!/usr/bin/env bash
 passed=0
 failed=0
-errors=""
 
-# Success tests: build, run, compare output
-for f in examples/basic/*.lisp; do
-    expected="${f%.lisp}.expected"
-    name=$(basename "$f" .lisp)
+GREEN='\033[32m'
+RED='\033[31m'
+DIM='\033[2m'
+RESET='\033[0m'
 
-    just build "$f" 2>/dev/null
-    if [ $? -ne 0 ]; then
-        errors="$errors\n  FAIL $name: build failed"
-        failed=$((failed + 1))
-        continue
-    fi
+run_tests() {
+    local dir="$1"
 
-    actual=$(./output/program)
+    for f in "$dir"/*.lisp; do
+        [ -f "$f" ] || continue
+        local expected="${f%.lisp}.expected"
+        local name=$(basename "$f" .lisp)
+        local expr=$(cat "$f")
 
-    if [ -f "$expected" ]; then
-        want=$(cat "$expected")
-        if [ "$actual" = "$want" ]; then
-            echo "  PASS $name"
-            passed=$((passed + 1))
-        else
-            echo "  FAIL $name: expected '$want', got '$actual'"
-            errors="$errors\n  FAIL $name: expected '$want', got '$actual'"
+        echo "  $name"
+        echo -e "${DIM}$(sed 's/^/    /' "$f")${RESET}"
+
+        just build "$f" 2>/dev/null
+        if [ $? -ne 0 ]; then
+            echo -e "    ${RED}FAIL${RESET} build failed"
+            echo ""
             failed=$((failed + 1))
+            continue
         fi
-    else
-        echo "  SKIP $name (no .expected file)"
-    fi
-done
 
-# Error tests: expect compilation to fail with specific message
-for f in examples/errors/*.lisp; do
-    [ -f "$f" ] || continue
-    expected="${f%.lisp}.expected"
-    name=$(basename "$f" .lisp)
+        sync
+        local actual=$(./output/program)
 
-    stderr=$(just build "$f" 2>&1)
-    if [ $? -eq 0 ]; then
-        echo "  FAIL $name: expected error but build succeeded"
-        errors="$errors\n  FAIL $name: expected error but build succeeded"
-        failed=$((failed + 1))
-        continue
-    fi
-
-    if [ -f "$expected" ]; then
-        want=$(cat "$expected")
-        if echo "$stderr" | grep -q "$want"; then
-            echo "  PASS $name (error)"
-            passed=$((passed + 1))
+        if [ -f "$expected" ]; then
+            local want=$(cat "$expected")
+            if [ "$actual" = "$want" ]; then
+                echo -e "    ${GREEN}PASS${RESET} $actual"
+            else
+                echo -e "    ${RED}FAIL${RESET} got '$actual', expected '$want'"
+                failed=$((failed + 1))
+                continue
+            fi
         else
-            echo "  FAIL $name: expected error '$want'"
-            errors="$errors\n  FAIL $name: expected error '$want', got '$stderr'"
-            failed=$((failed + 1))
+            echo "    $actual"
         fi
-    else
-        echo "  SKIP $name (no .expected file)"
-    fi
-done
 
+        echo ""
+        passed=$((passed + 1))
+    done
+}
+
+run_error_tests() {
+    local dir="$1"
+
+    for f in "$dir"/*.lisp; do
+        [ -f "$f" ] || continue
+        local expected="${f%.lisp}.expected"
+        local name=$(basename "$f" .lisp)
+
+        echo "  $name"
+        echo -e "${DIM}$(sed 's/^/    /' "$f")${RESET}"
+
+        local stderr
+        stderr=$(just build "$f" 2>&1)
+        if [ $? -eq 0 ]; then
+            echo -e "    ${RED}FAIL${RESET} expected error but succeeded"
+            echo ""
+            failed=$((failed + 1))
+            continue
+        fi
+
+        if [ -f "$expected" ]; then
+            local want=$(cat "$expected")
+            if echo "$stderr" | grep -q "$want"; then
+                echo -e "    ${GREEN}PASS${RESET} error"
+            else
+                echo -e "    ${RED}FAIL${RESET} wrong error message"
+                failed=$((failed + 1))
+                continue
+            fi
+        else
+            echo -e "    ${GREEN}PASS${RESET} error"
+        fi
+
+        echo ""
+        passed=$((passed + 1))
+    done
+}
+
+echo "=== Basic ==="
 echo ""
+run_tests "examples/basic"
+
+echo "=== Programs ==="
+echo ""
+run_tests "examples/programs"
+
+echo "=== Errors ==="
+echo ""
+run_error_tests "examples/errors"
+
 echo "$passed passed, $failed failed"
-if [ $failed -gt 0 ]; then
-    echo -e "\nFailures:$errors"
-    exit 1
-fi
+[ $failed -eq 0 ] || exit 1
