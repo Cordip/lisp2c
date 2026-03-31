@@ -22,3 +22,15 @@ class TokenizerTest extends munit.FunSuite:
 
   test("quote expression"):
     assertEquals(Tokenizer("(quote foo)"), List("(", "quote", "foo", ")"))
+
+  test("newline as whitespace"):
+    assertEquals(Tokenizer("(+ 1\n2)"), List("(", "+", "1", "2", ")"))
+
+  test("tab as whitespace"):
+    assertEquals(Tokenizer("(+ 1\t2)"), List("(", "+", "1", "2", ")"))
+
+  test("carriage return as whitespace"):
+    assertEquals(Tokenizer("(+ 1\r2)"), List("(", "+", "1", "2", ")"))
+
+  test("trailing newline"):
+    assertEquals(Tokenizer("(+ 1 2)\n"), List("(", "+", "1", "2", ")"))

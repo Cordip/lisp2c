@@ -207,6 +207,49 @@ class LoweringTest extends munit.FunSuite:
     assertEquals(functions.head.name, "lisp_id_0")
 
   test("apply user function"):
-    val input = LispApply(LispVar("f"), List(LispNumber(42)))
-    val result = Lowering.lowerExpr(input, Lowering.Scope(globals = Set("f")))
-    assert(result.isInstanceOf[CApplyClosure])
+    val define = LispDefine("f", LispLambda(List("x"), LispVar("x"), List()))
+    val applyExpr = LispApply(LispVar("f"), List(LispNumber(42)))
+    val (_, _, cExprs) = Lowering.lowerProgram(List(define, applyExpr))
+    assert(cExprs(1).isInstanceOf[CApplyClosure])
+
+  test("arity check: too many args to primitive"):
+    val ex = intercept[Exception] {
+      Lowering(LispApply(LispVar("+"), List(LispNumber(1), LispNumber(2), LispNumber(3))))
+    }
+    assert(ex.getMessage.contains("requires 2 arguments, got 3"))
+
+  test("arity check: too few args to primitive"):
+    val ex = intercept[Exception] {
+      Lowering(LispApply(LispVar("+"), List(LispNumber(1))))
+    }
+    assert(ex.getMessage.contains("requires 2 arguments, got 1"))
+
+  test("arity check: car requires exactly 1 arg"):
+    val ex = intercept[Exception] {
+      Lowering(LispApply(LispVar("car"), List(LispNil, LispNil)))
+    }
+    assert(ex.getMessage.contains("requires 1 arguments, got 2"))
+
+  test("let binding resolves to CVar not CEnvRef"):
+    val input = LispLet(List("x" -> LispNumber(5)), LispVar("x"))
+    val result = Lowering(input)
+    result match
+      case CLet(namedBindings, body) =>
+        assertEquals(namedBindings.length, 1)
+        assert(body.isInstanceOf[CVar], s"expected CVar body but got $body")
+      case other => fail(s"expected CLet but got $other")
+
+  test("let binding name starts with _let"):
+    val input = LispLet(List("x" -> LispNumber(5)), LispVar("x"))
+    val result = Lowering(input)
+    result match
+      case CLet(namedBindings, CVar(bodyName)) =>
+        assertEquals(namedBindings.head._1, bodyName)
+        assert(bodyName.startsWith("_let"), s"expected _let prefix but got $bodyName")
+      case other => fail(s"unexpected result $other")
+
+  test("lowerProgram is stateless across calls"):
+    val input = List(LispDefine("id", LispLambda(List("x"), LispVar("x"), List())))
+    val (fns1, _, _) = Lowering.lowerProgram(input)
+    val (fns2, _, _) = Lowering.lowerProgram(input)
+    assertEquals(fns1.head.name, fns2.head.name)

@@ -15,13 +15,9 @@ object CodeGen:
 
   def renderFunction(f: FlatFunction): List[String] =
     val sig = s"LispVal ${f.name}(Env* env, int argc, LispVal* argv)"
-    val bodyStrings = f.body.flatMap(emitStatement).flatMap(lineToStrings(_, 1))
+    val bodyLines = f.body.flatMap(emitStatement)
+    val bodyStrings = Printer(bodyLines, indent = 1).split("\n").toList
     List(s"$sig {") ++ bodyStrings ++ List("}")
-
-  private def lineToStrings(line: Line, indent: Int): List[String] =
-    line match
-      case Text(value) => List(s"${"  " * indent}$value")
-      case Block(lines) => lines.flatMap(lineToStrings(_, indent + 1))
 
   private def emitStatement(stmt: Statement): List[Line] =
     stmt match
