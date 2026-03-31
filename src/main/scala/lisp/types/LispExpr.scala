@@ -10,6 +10,9 @@ enum LispExpr:
   case LispApply(function: LispExpr, args: List[LispExpr])
   case LispVar(name: String)
   case LispNil
+  case LispLambda(params: List[String], body: LispExpr, freeVars: List[String])
+  case LispDefine(name: String, value: LispExpr)
+  case LispLet(bindings: List[(String, LispExpr)], body: LispExpr)
 
   def show: String = this match
     case LispNumber(v)      => v.toString
@@ -21,3 +24,6 @@ enum LispExpr:
     case LispVar(n)         => n
     case LispQuote(body)    => s"(quote ${body.show})"
     case LispIf(c, t, e)    => s"(if ${c.show} ${t.show} ${e.show})"
+    case LispLambda(ps, b, _) => s"(lambda (${ps.mkString(" ")}) ${b.show})"
+    case LispDefine(n, v)   => s"(define $n ${v.show})"
+    case LispLet(bs, b)     => s"(let (${bs.map((n, v) => s"($n ${v.show})").mkString(" ")}) ${b.show})"

@@ -14,6 +14,43 @@ LispVal lisp_equal(LispVal a, LispVal b) {
   return a == b ? LISP_TRUE : LISP_FALSE;
 }
 
+// --- Closure and Env ---
+
+Env *make_env(int size) {
+  Env *env = malloc(sizeof(Env));
+  if (!env) {
+    fprintf(stderr, "out of memory\n");
+    exit(1);
+  }
+  env->size = size;
+  env->vars = size > 0 ? malloc(sizeof(LispVal) * (size_t)size) : NULL;
+  if (size > 0 && !env->vars) {
+    fprintf(stderr, "out of memory\n");
+    exit(1);
+  }
+  return env;
+}
+
+LispVal make_closure(LispVal (*fn)(Env *, int, LispVal *), Env *env) {
+  ClosureData *data = malloc(sizeof(ClosureData));
+  if (!data) {
+    fprintf(stderr, "out of memory\n");
+    exit(1);
+  }
+  data->fn = fn;
+  data->env = env;
+  return PACK(TAG_CLOSURE, (uint64_t)(uintptr_t)data);
+}
+
+LispVal apply_closure(LispVal closure, int argc, LispVal *argv) {
+  if (TAG(closure) != TAG_CLOSURE) {
+    fprintf(stderr, "apply_closure: expected CLOSURE, got tag %04x\n", TAG(closure));
+    exit(1);
+  }
+  ClosureData *data = (ClosureData *)(uintptr_t)PAYLOAD(closure);
+  return data->fn(data->env, argc, argv);
+}
+
 static void print_tail(LispVal cdr_val);
 
 void print_val(LispVal val) {

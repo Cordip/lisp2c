@@ -1,8 +1,9 @@
 package lisp.orchestration
 
-import lisp.emit.{CodeGen, Flatten, Printer}
+import lisp.emit.{CodeGen, Flatten, Printer, Runtime}
 import lisp.parse.{Parser, Tokenizer}
-import lisp.transform.{Lowering, Transform}
+import lisp.transform.{FreeVarAnalysis, Lowering, Transform}
+import lisp.types.{FlatFunction, GlobalDecl}
 
 import java.io.{File, PrintWriter}
 import scala.io.Source
@@ -12,12 +13,30 @@ object Compiler:
 
   def pipeline(lispCode: String): String =
     val tokens = Tokenizer(lispCode)
-    val exprs = Parser.parseAll(tokens)
-    val lispExprs = exprs.map(Transform.apply)
-    val cExpr = Lowering(lispExprs.last)
-    val statements = Flatten(cExpr)
-    val lines = CodeGen(statements)
-    Printer(lines, indent = 1)
+    val sexprs = Parser.parseAll(tokens)
+    val lispExprs = sexprs.map(Transform.apply)
+    val analyzed = lispExprs.map(FreeVarAnalysis.apply)
+    val (cfunctions, globalDecls, cExprs) = Lowering.lowerProgram(analyzed)
+
+    // Flatten function bodies
+    val flatFunctions = cfunctions.map(f =>
+      FlatFunction(f.name, f.params, Flatten.flattenBody(f.body))
+    )
+
+    // Flatten main body (defines → assign, others → print)
+    val mainStmts = Flatten.flattenTopLevelAll(cExprs)
+
+    // CodeGen
+    val globalLines = globalDecls.map(CodeGen.renderGlobalDecl)
+    val functionLines = flatFunctions.flatMap(CodeGen.renderFunction)
+    val bodyLines = CodeGen(mainStmts).flatMap(line => Printer(List(line), indent = 1).split("\n").toList)
+
+    // Assemble template
+    val template = readResource("template.c")
+    template
+      .replace("{{GLOBALS}}", globalLines.mkString("\n"))
+      .replace("{{FUNCTIONS}}", functionLines.mkString("\n"))
+      .replace("{{BODY}}", bodyLines.mkString("\n"))
 
   private def writeFile(dir: File, name: String, content: String): Unit =
     Using(PrintWriter(File(dir, name)))(_.write(content)).get

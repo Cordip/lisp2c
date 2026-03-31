@@ -20,8 +20,5 @@ import scala.util.Using
         sys.exit(1)
       Using(Source.fromFile(file))(_.mkString).get
 
-  val cCode = Compiler.pipeline(lispCode)
-  val template = Compiler.readResource("template.c")
-  val output = template.replace("{{BODY}}", cCode)
-
+  val output = Compiler.pipeline(lispCode)
   Compiler.initializeOutput(output)

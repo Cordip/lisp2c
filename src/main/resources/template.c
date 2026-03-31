@@ -1,13 +1,11 @@
 #include "runtime.h"
 #include <stdio.h>
 
-LispVal lisp(void) {
-{{BODY}}
-}
+{{GLOBALS}}
+
+{{FUNCTIONS}}
 
 int main(void) {
-  LispVal result = lisp();
-  print_val(result);
-  printf("\n");
-  return 0;
+{{BODY}}
+    return 0;
 }

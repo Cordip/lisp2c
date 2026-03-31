@@ -197,3 +197,16 @@ class LoweringTest extends munit.FunSuite:
       Lowering(LispApply(LispVar("cdr"), List(LispNil))),
       CCall("lisp_cdr", List(CVar("LISP_NIL")))
     )
+
+  test("define simple function"):
+    val input = LispDefine("id", LispLambda(List("x"), LispVar("x"), List()))
+    val (functions, globals, stmts) = Lowering.lowerProgram(List(input))
+    assertEquals(globals.length, 1)
+    assertEquals(globals.head.name, "id")
+    assertEquals(functions.length, 1)
+    assertEquals(functions.head.name, "lisp_id_0")
+
+  test("apply user function"):
+    val input = LispApply(LispVar("f"), List(LispNumber(42)))
+    val result = Lowering.lowerExpr(input, Lowering.Scope(globals = Set("f")))
+    assert(result.isInstanceOf[CApplyClosure])

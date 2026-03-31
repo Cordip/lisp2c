@@ -4,6 +4,7 @@ object Runtime:
   val makeInt = "make_int"
   val makeCons = "make_cons"
   val makeSymbol = "make_symbol"
+  val makeBool = "make_bool"
   val lispTrue = "LISP_TRUE"
   val lispFalse = "LISP_FALSE"
   val lispNil = "LISP_NIL"
@@ -17,3 +18,8 @@ object Runtime:
   val lispGt = "lisp_gt"
   val lispCar = "lisp_car"
   val lispCdr = "lisp_cdr"
+  val makeEnv = "make_env"
+  val makeClosure = "make_closure"
+  val applyClosure = "apply_closure"
+
+  val primitives: Set[String] = Set("+", "-", "*", "=", "eq?", "eqv?", "equal?", "<", ">", "car", "cdr", "cons")
