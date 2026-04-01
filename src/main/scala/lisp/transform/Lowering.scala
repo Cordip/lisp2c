@@ -151,18 +151,18 @@ object Lowering:
       case Some(c) if c.isDigit => s"_$prefixed"
       case _                    => prefixed
 
-  private def buildGlobalNameMap(names: List[String]): Map[String, String] =
-    val used = mutable.Set[String]()
-    names.distinct.sorted.map { name =>
-      val base = sanitizeName(name)
-      var candidate = base
-      var idx = 1
-      while used.contains(candidate) do
-        candidate = s"${base}_$idx"
-        idx += 1
-      used += candidate
-      name -> candidate
-    }.toMap
-
   private def globalCName(name: String, globals: Set[String]): String =
-    buildGlobalNameMap(globals.toList).getOrElse(name, sanitizeName(name))
+    val used = mutable.Set[String]()
+    globals.toList.distinct.sorted.iterator
+      .map { global =>
+        val base = sanitizeName(global)
+        var candidate = base
+        var idx = 1
+        while used.contains(candidate) do
+          candidate = s"${base}_$idx"
+          idx += 1
+        used += candidate
+        global -> candidate
+      }
+      .collectFirst { case (`name`, cName) => cName }
+      .getOrElse(sanitizeName(name))
