@@ -253,3 +253,15 @@ class LoweringTest extends munit.FunSuite:
     val (fns1, _, _) = Lowering.lowerProgram(input)
     val (fns2, _, _) = Lowering.lowerProgram(input)
     assertEquals(fns1.head.name, fns2.head.name)
+
+  test("global names are sanitized for C identifiers"):
+    val define = LispDefine("make-adder", LispLambda(List("n"), LispVar("n"), List()))
+    val applyExpr = LispApply(LispVar("make-adder"), List(LispNumber(5)))
+    val (_, globals, cExprs) = Lowering.lowerProgram(List(define, applyExpr))
+    assertEquals(globals.head.name, "make_adder")
+    cExprs(0) match
+      case CDefineAssign(name, _) => assertEquals(name, "make_adder")
+      case other                  => fail(s"expected CDefineAssign but got $other")
+    cExprs(1) match
+      case CApplyClosure(CVar(name), _) => assertEquals(name, "make_adder")
+      case other                        => fail(s"expected CApplyClosure(make_adder, ...) but got $other")

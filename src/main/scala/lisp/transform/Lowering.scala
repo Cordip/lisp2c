@@ -12,7 +12,7 @@ object Lowering:
   private case class Scope(
     params: List[String] = List(),
     envVars: List[String] = List(),
-    globals: Set[String] = Set(),
+    globals: Map[String, String] = Map(),
     letVars: Map[String, String] = Map(),
     parent: Option[Scope] = None
   ):
@@ -25,7 +25,7 @@ object Lowering:
         else
           val envIdx = envVars.indexOf(name)
           if envIdx >= 0 then CEnvRef(envIdx)
-          else if globals.contains(name) then CVar(name)
+          else if globals.contains(name) then CVar(globals(name))
           else
             parent match
               case Some(p) => p.resolve(name)
@@ -61,7 +61,7 @@ object Lowering:
 
   def lowerProgram(exprs: List[LispExpr]): (List[CFunction], List[GlobalDecl], List[CExpr]) =
     val state = new LoweringState()
-    val globals = exprs.collect { case LispDefine(name, _) => name }.toSet
+    val globals = buildGlobalNameMap(exprs.collect { case LispDefine(name, _) => name })
     val scope = Scope(globals = globals)
     val cExprs = exprs.flatMap(lowerTopLevel(_, scope, state))
     (state.functions.toList, state.globalDecls.toList, cExprs)
@@ -69,8 +69,9 @@ object Lowering:
   private def lowerTopLevel(expr: LispExpr, scope: Scope, state: LoweringState): List[CExpr] =
     expr match
       case LispDefine(name, value) =>
-        state.globalDecls += GlobalDecl(name)
-        List(CDefineAssign(name, lowerExprWithName(value, name, scope, state)))
+        val cName = scope.globals.getOrElse(name, sanitizeName(name))
+        state.globalDecls += GlobalDecl(cName)
+        List(CDefineAssign(cName, lowerExprWithName(value, cName, scope, state)))
       case other =>
         List(lowerExpr(other, scope, state))
 
@@ -142,3 +143,11 @@ object Lowering:
       case LispCons(a, b)   => CCall(makeCons, List(lowerQuote(a), lowerQuote(b)))
       case LispSymbol(name) => CCall(makeSymbol, List(CStringLit(name)))
       case _                => throw new Exception(s"unresolved expression: $input")
+
+  private def sanitizeName(name: String): String =
+    val replaced = name.replaceAll("[^a-zA-Z0-9_]", "_")
+    val prefixed = if replaced.isEmpty then "_" else replaced
+    if prefixed.head.isDigit then s"_$prefixed" else prefixed
+
+  private def buildGlobalNameMap(names: List[String]): Map[String, String] =
+    names.distinct.map(name => name -> sanitizeName(name)).toMap
