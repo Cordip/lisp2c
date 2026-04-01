@@ -265,3 +265,10 @@ class LoweringTest extends munit.FunSuite:
     cExprs(1) match
       case CApplyClosure(CVar(name), _) => assertEquals(name, "make_adder")
       case other                        => fail(s"expected CApplyClosure(make_adder, ...) but got $other")
+
+  test("sanitized global names remain unique on collision"):
+    val defineA = LispDefine("make-adder", LispNumber(1))
+    val defineB = LispDefine("make.adder", LispNumber(2))
+    val (_, globals, cExprs) = Lowering.lowerProgram(List(defineA, defineB))
+    assertEquals(globals.map(_.name), List("make_adder", "make_adder_1"))
+    assertEquals(cExprs.collect { case CDefineAssign(name, _) => name }, List("make_adder", "make_adder_1"))

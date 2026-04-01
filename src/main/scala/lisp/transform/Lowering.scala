@@ -6,6 +6,7 @@ import lisp.types.LispExpr.*
 import lisp.types.{CExpr, CFunction, GlobalDecl, LispExpr}
 
 import scala.collection.mutable.ListBuffer
+import scala.collection.mutable
 
 object Lowering:
 
@@ -147,7 +148,19 @@ object Lowering:
   private def sanitizeName(name: String): String =
     val replaced = name.replaceAll("[^a-zA-Z0-9_]", "_")
     val prefixed = if replaced.isEmpty then "_" else replaced
-    if prefixed.head.isDigit then s"_$prefixed" else prefixed
+    prefixed.headOption match
+      case Some(c) if c.isDigit => s"_$prefixed"
+      case _                    => prefixed
 
   private def buildGlobalNameMap(names: List[String]): Map[String, String] =
-    names.distinct.map(name => name -> sanitizeName(name)).toMap
+    val used = mutable.Set[String]()
+    names.distinct.map { name =>
+      val base = sanitizeName(name)
+      var candidate = base
+      var idx = 1
+      while used.contains(candidate) do
+        candidate = s"${base}_$idx"
+        idx += 1
+      used += candidate
+      name -> candidate
+    }.toMap
