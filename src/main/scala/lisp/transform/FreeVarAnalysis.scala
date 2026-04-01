@@ -12,7 +12,7 @@ object FreeVarAnalysis:
     expr match
       case LispLambda(params, body, _) =>
         val newBody = analyze(body, bound ++ params)
-        val free = collectFree(newBody, params.toSet).diff(Runtime.primitives)
+        val free = collectFree(newBody, params.toSet).diff(Runtime.primitives).diff(bound)
         LispLambda(params, newBody, free.toList.sorted)
       case LispDefine(name, value) =>
         LispDefine(name, analyze(value, bound + name))
