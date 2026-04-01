@@ -25,7 +25,7 @@ object Lowering:
         else
           val envIdx = envVars.indexOf(name)
           if envIdx >= 0 then CEnvRef(envIdx)
-          else if globals.contains(name) then CVar(name)
+          else if globals.contains(name) then CVar(sanitizeName(name))
           else
             parent match
               case Some(p) => p.resolve(name)
@@ -69,8 +69,9 @@ object Lowering:
   private def lowerTopLevel(expr: LispExpr, scope: Scope, state: LoweringState): List[CExpr] =
     expr match
       case LispDefine(name, value) =>
-        state.globalDecls += GlobalDecl(name)
-        List(CDefineAssign(name, lowerExprWithName(value, name, scope, state)))
+        val cName = sanitizeName(name)
+        state.globalDecls += GlobalDecl(cName)
+        List(CDefineAssign(cName, lowerExprWithName(value, cName, scope, state)))
       case other =>
         List(lowerExpr(other, scope, state))
 
@@ -128,6 +129,13 @@ object Lowering:
     val innerScope = Scope(params = params, envVars = freeVars, globals = scope.globals)
     state.functions += CFunction(funcName, params, lowerExpr(body, innerScope, state))
     CClosure(funcName, freeVars.map(n => scope.resolve(n)))
+
+  private def sanitizeName(name: String): String =
+    val replaced = name.replaceAll("[^a-zA-Z0-9_]", "_")
+    val prefixed = if replaced.isEmpty then "_" else replaced
+    prefixed.headOption match
+      case Some(c) if c.isDigit => s"_$prefixed"
+      case _                    => prefixed
 
   private def isLiteral(expr: LispExpr): Boolean = expr match
     case _: LispNumber | _: LispBool | LispNil | _: LispCons | _: LispSymbol => true
