@@ -13,7 +13,8 @@ object Lowering:
   private case class Scope(
     params: List[String] = List(),
     envVars: List[String] = List(),
-    globals: Map[String, String] = Map(),
+    globals: Set[String] = Set(),
+    globalNames: Map[String, String] = Map(),
     letVars: Map[String, String] = Map(),
     parent: Option[Scope] = None
   ):
@@ -26,7 +27,7 @@ object Lowering:
         else
           val envIdx = envVars.indexOf(name)
           if envIdx >= 0 then CEnvRef(envIdx)
-          else if globals.contains(name) then CVar(globals(name))
+          else if globals.contains(name) then CVar(globalNames(name))
           else
             parent match
               case Some(p) => p.resolve(name)
@@ -62,15 +63,15 @@ object Lowering:
 
   def lowerProgram(exprs: List[LispExpr]): (List[CFunction], List[GlobalDecl], List[CExpr]) =
     val state = new LoweringState()
-    val globals = buildGlobalNameMap(exprs.collect { case LispDefine(name, _) => name })
-    val scope = Scope(globals = globals)
+    val globalNames = buildGlobalNameMap(exprs.collect { case LispDefine(name, _) => name })
+    val scope = Scope(globals = globalNames.keySet, globalNames = globalNames)
     val cExprs = exprs.flatMap(lowerTopLevel(_, scope, state))
     (state.functions.toList, state.globalDecls.toList, cExprs)
 
   private def lowerTopLevel(expr: LispExpr, scope: Scope, state: LoweringState): List[CExpr] =
     expr match
       case LispDefine(name, value) =>
-        val cName = scope.globals.getOrElse(name, sanitizeName(name))
+        val cName = scope.globalNames.getOrElse(name, sanitizeName(name))
         state.globalDecls += GlobalDecl(cName)
         List(CDefineAssign(cName, lowerExprWithName(value, cName, scope, state)))
       case other =>
@@ -80,7 +81,7 @@ object Lowering:
     expr match
       case LispLambda(params, body, freeVars) =>
         val funcName = s"lisp_${hint.replaceAll("[^a-zA-Z0-9_]", "_")}_${state.fresh()}"
-        val innerScope = Scope(params = params, envVars = freeVars, globals = scope.globals)
+        val innerScope = Scope(params = params, envVars = freeVars, globals = scope.globals, globalNames = scope.globalNames)
         val bodyExpr = lowerExpr(body, innerScope, state)
         state.functions += CFunction(funcName, params, bodyExpr)
         CClosure(funcName, freeVars.map(n => scope.resolve(n)))
@@ -127,7 +128,8 @@ object Lowering:
     scope: Scope,
     state: LoweringState
   ): CExpr =
-    val innerScope = Scope(params = params, envVars = freeVars, globals = scope.globals)
+    val innerScope =
+      Scope(params = params, envVars = freeVars, globals = scope.globals, globalNames = scope.globalNames)
     state.functions += CFunction(funcName, params, lowerExpr(body, innerScope, state))
     CClosure(funcName, freeVars.map(n => scope.resolve(n)))
 
